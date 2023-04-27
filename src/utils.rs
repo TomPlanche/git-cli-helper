@@ -4,7 +4,7 @@
 
 // Imports ================================================================================= Imports
 use ansi_term::Style;
-use std::path::Display;
+use std::path::{Path};
 
 // Functions  ===========================================================================  Functions
 ///
@@ -39,20 +39,6 @@ pub fn ask_user_validation(message: &str, default: Option<char>) -> bool {
 }
 
 ///
-/// # file_exists
-/// This function checks if a file exists.
-///
-/// ## Arguments
-/// * `filename` - The name of the file to check
-/// * `source` - The source folder
-///
-/// ## Returns
-/// * `bool` - If the file exists or not
-pub fn file_exists(filename: &str, source: &Display) -> bool {
-    return std::path::Path::new(&format!("{}/{}", source, filename )).exists();
-}
-
-///
 /// # read_file
 /// This function reads a file from a source folder.
 ///
@@ -62,9 +48,9 @@ pub fn file_exists(filename: &str, source: &Display) -> bool {
 ///
 /// ## Returns
 /// * `String` - The content of the file
-pub fn read_file(filename: &str, source: &Display) -> String {
+pub fn read_file(path: &Path) -> String {
     // Read the file
-    let content: String = std::fs::read_to_string(format!("{}/{}", source, filename))
+    let content: String = std::fs::read_to_string(path)
         .expect("Something went wrong reading the file");
 
     // Return the file

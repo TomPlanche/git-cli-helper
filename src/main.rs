@@ -8,7 +8,7 @@ mod git_related;
 mod utils;
 
 use std::io::prelude::*;
-use std::path::Display;
+use std::path::{Path};
 
 use ansi_term::Colour::{Red, Green};
 
@@ -27,15 +27,15 @@ const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
 ///
 /// ## Returns
 /// * `()` - Nothing
-fn prepare_commit_msg(source: &Display) {
+fn prepare_commit_msg(path: &Path) {
     // If the COMMIT_MESSAGE_FILE exists
-    if utils::file_exists(COMMIT_MESSAGE_FILE, source) {
+    if path.exists() {
         // Empty the file
-        std::fs::write(format!("{}/{}", source, COMMIT_MESSAGE_FILE), "")
+        std::fs::write(path, "")
             .expect("Something went wrong emptying the file");
     } else {
         // Create the file
-        std::fs::File::create(format!("{}/{}", source, COMMIT_MESSAGE_FILE))
+        std::fs::File::create(path)
             .expect("Something went wrong creating the file");
     }
 
@@ -45,7 +45,7 @@ fn prepare_commit_msg(source: &Display) {
     // The commit message file
     let mut commit_file = std::fs::OpenOptions::new()
         .append(true) // Append to the file
-        .open(format!("{}/{}", source, COMMIT_MESSAGE_FILE))
+        .open(path)
         .unwrap();
 
     let commit_number: u8 = git_related::get_current_commit_nb(None) + 1;
@@ -75,10 +75,12 @@ fn main() {
 
     // Folder caller - the folder from which the program was called
     let caller = std::env::current_dir().unwrap();
+    let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
+    let commit_message_file_path = Path::new(&commit_message_file_path_str);
 
 
     // Looks if a file named COMMIT_MESSAGE_FILE exists in the 'caller' folder
-    if utils::file_exists(COMMIT_MESSAGE_FILE, &caller.display()) {
+    if commit_message_file_path.exists() {
         // If it exists, print a message
         println!("{} {} ✅ ",
             COMMIT_MESSAGE_FILE,
@@ -86,7 +88,7 @@ fn main() {
         );
 
         // Read the file
-        let commit_message = utils::read_file(COMMIT_MESSAGE_FILE, &caller.display());
+        let commit_message = utils::read_file(commit_message_file_path);
 
         // Print the commit message
         let delimiter = "------------------------------------------------";
@@ -123,7 +125,7 @@ fn main() {
         } else {
             // If the user doesn't want to commit with this message
             if utils::ask_user_validation("Do you want to edit the commit message?", Some('y')) {
-                prepare_commit_msg(&caller.display());
+                prepare_commit_msg(commit_message_file_path);
             }
         }
 
