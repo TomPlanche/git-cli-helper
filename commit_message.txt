@@ -1,6 +1,4 @@
+[3] TL;DR README update + working
 
-
-
-- Cargo.toml:
-	
-
+- src/main.rs:
+	file now works as intended.
