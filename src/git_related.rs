@@ -2,36 +2,34 @@
 /// # git_related
 /// This module contains functions related to git.
 
+// Imports ================================================================================= Imports
 use ansi_term::Colour::{Red};
 
+// Functions  ===========================================================================  Functions
 ///
-/// # read_git_status
-/// This function reads the git status.
+/// # get_current_commit_nb
+/// This function returns the number of commits.
+///
+/// ## Arguments
+/// * `branch` - The branch to check - optional - (default: HEAD)
 ///
 /// ## Returns
-/// * `String` - The git status
-pub fn read_git_status() -> String {
-    // Command
-    let command = std::process::Command::new("git")
-        .arg("status")
-        .arg("--porcelain")
+/// * `u8` - The number of commits
+pub fn get_current_commit_nb(branch: Option<&str>) -> u8 {
+    let output = std::process::Command::new("git")
+        .arg("rev-list")
+        .arg("--count")
+        .arg(branch.unwrap_or("HEAD"))
         .output()
         .expect("failed to execute process");
 
-    // If the command was successful
-    return if command.status.success() {
-        // Convert the output to a string
-        let output = String::from_utf8_lossy(&command.stdout);
+    let output = String::from_utf8_lossy(&output.stdout);
 
-        output.to_string()
-    } else {
-        // Print an error message
-        println!("{}",
-                 Red.bold().paint("Failed to read git status.")
-        );
+    let output = output.trim();
 
-        String::from("")
-    }
+    let output = output.parse::<u8>().unwrap();
+
+    return output;
 }
 
 ///
@@ -68,4 +66,34 @@ pub fn process_git_status(message: &String) -> Vec<String> {
 
     // Return the vector
     return modified_files;
+}
+
+///
+/// # read_git_status
+/// This function reads the git status.
+///
+/// ## Returns
+/// * `String` - The git status
+pub fn read_git_status() -> String {
+    // Command
+    let command = std::process::Command::new("git")
+        .arg("status")
+        .arg("--porcelain")
+        .output()
+        .expect("failed to execute process");
+
+    // If the command was successful
+    return if command.status.success() {
+        // Convert the output to a string
+        let output = String::from_utf8_lossy(&command.stdout);
+
+        output.to_string()
+    } else {
+        // Print an error message
+        println!("{}",
+                 Red.bold().paint("Failed to read git status.")
+        );
+
+        String::from("")
+    }
 }

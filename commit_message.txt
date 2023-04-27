@@ -1,4 +1,11 @@
-[3] TL;DR README update + working
+[5] TL;DR - Added git commit count.
+
+- src/git_related.rs:
+	Added 'get_current_commit_nb' function.
+	Sorted the function by name.
 
 - src/main.rs:
-	file now works as intended.
+	Sorted the function by name.
+
+- src/utils.rs:
+	Sorted the function by name.

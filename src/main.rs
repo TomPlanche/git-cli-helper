@@ -7,12 +7,11 @@
 mod git_related;
 mod utils;
 
+use std::io::prelude::*;
 use std::path::Display;
 
 use ansi_term::Colour::{Red, Green};
 
-
-use std::io::prelude::*;
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
 
@@ -49,7 +48,9 @@ fn prepare_commit_msg(source: &Display) {
         .open(format!("{}/{}", source, COMMIT_MESSAGE_FILE))
         .unwrap();
 
-    if let Err(e) = writeln!(commit_file, "\n\n") {
+    let commit_number: u8 = git_related::get_current_commit_nb(None) + 1;
+
+    if let Err(e) = writeln!(commit_file, "[{}]\n\n", commit_number) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
@@ -92,7 +93,7 @@ fn main() {
         println!("\nCommit message: \n{}\n{}\n{}", delimiter, commit_message, delimiter);
 
         // User Validation
-        if utils::ask_user_validation("Do you want to commit with this message?", Some('y')) {
+        if utils::ask_user_validation("Do you want to commit with this message?", None) {
             // Commit
             println!("\nCommiting...");
 
