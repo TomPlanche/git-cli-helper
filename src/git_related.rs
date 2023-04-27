@@ -47,7 +47,7 @@ pub fn process_git_status(message: &String) -> Vec<String> {
     // Added files are indicated by a 'A' at the beginning of the line
 
     // Regex to match the modified files and the added files
-    let regex_rule = regex::Regex::new(r"^\s?[A|M]\s+(.*)$").unwrap();
+    let regex_rule = regex::Regex::new(r"^[A|M]\s+(.*)$").unwrap();
 
     // Create a vector to store the modified / added files while parsing the git status message
     let mut modified_files: Vec<String> = Vec::new();

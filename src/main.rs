@@ -8,12 +8,13 @@ mod git_related;
 mod utils;
 
 use std::io::prelude::*;
-use std::path::{Path};
+use std::path::Path;
 
 use ansi_term::Colour::{Red, Green};
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
+const COMMITIGNORE_FILE_PATH: &str = ".git/hooks/commit-msg";
 
 // Function(s) =========================================================================== Functions
 ///
@@ -28,6 +29,13 @@ const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
 /// ## Returns
 /// * `()` - Nothing
 fn prepare_commit_msg(path: &Path) {
+    // Get the location of the file passed by 'path'
+    // ex: path = /home/user/project/src/main.rs
+    // get the location of the file: /home/user/project/src/
+    // let path = path.parent().unwrap();
+
+
+
     // If the COMMIT_MESSAGE_FILE exists
     if path.exists() {
         // Empty the file
@@ -42,6 +50,7 @@ fn prepare_commit_msg(path: &Path) {
     // Read the git status
     let modified_files: Vec<String> = git_related::process_git_status(&git_related::read_git_status());
 
+    print!("{} {}", Green.paint("Modified files:"), modified_files.join(", "));
     // The commit message file
     let mut commit_file = std::fs::OpenOptions::new()
         .append(true) // Append to the file
@@ -63,6 +72,14 @@ fn prepare_commit_msg(path: &Path) {
 }
 
 
+fn process_gitignore_file(path: &Path) {
+    for line in utils::read_file(path).lines() {
+        if line.starts_with("#") {
+            continue;
+        }
+
+    }
+}
 
 // MAIN ======================================================================================= MAIN
 /// # Main function
@@ -75,9 +92,9 @@ fn main() {
 
     // Folder caller - the folder from which the program was called
     let caller = std::env::current_dir().unwrap();
+
     let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
     let commit_message_file_path = Path::new(&commit_message_file_path_str);
-
 
     // Looks if a file named COMMIT_MESSAGE_FILE exists in the 'caller' folder
     if commit_message_file_path.exists() {
