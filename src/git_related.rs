@@ -3,7 +3,11 @@
 /// This module contains functions related to git.
 
 // Imports ================================================================================= Imports
+
+
 use ansi_term::Colour::{Red};
+use std::path::Path;
+use crate::utils::read_file;
 
 // Functions  ===========================================================================  Functions
 ///
@@ -66,6 +70,39 @@ pub fn process_git_status(message: &String) -> Vec<String> {
 
     // Return the vector
     return modified_files;
+}
+
+///
+/// # process_gitignore_file
+/// This function processes the gitignore file.
+///
+/// ## Arguments
+/// * `path` - The path to the gitignore file
+pub fn process_gitignore_file(path: &Path) -> Vec<String> {
+    // Read the gitignore file
+    let gitignore_file = &read_file(&path);
+
+    // The gitignore file stores the files and folders to ignore
+    // Each line is a file or folder to ignore
+    // The '#' character is used to comment a line
+
+    // Regex to match the files and folders to ignore
+    let regex_rule = regex::Regex::new(r"^[^#](.*)$").unwrap();
+
+    // Create a vector to store the files and folders to ignore while parsing the gitignore file
+    let mut files_to_ignore: Vec<String> = Vec::new();
+
+    // For each line in the gitignore file
+    for line in gitignore_file.lines() {
+        // If the line matches the regex
+        if regex_rule.is_match(line) {
+            // Add the file or folder name to the vector
+            files_to_ignore.push(line.to_string());
+        }
+
+    }
+
+    return files_to_ignore;
 }
 
 ///

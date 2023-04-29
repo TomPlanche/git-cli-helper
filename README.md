@@ -1,10 +1,30 @@
 # Git Commit With Rust.
 ## Description
-A simple program to commit with a message from a txt ‘commit_text.txt’ file.
 
-It can also generate the ‘commit_text.txt’ file from the current git situation
+I was tired to manually make proper commit messages so I made this Rust script to learn the basics of Rust AND solve my problem.
 
-## Demo
+When I added files to git, I use to manually make a description of what I’ve done for eacch file. To make it readable I am using this structure
+
+```
+[commit_nb] TL;DR Brief description
+
+- added_file_1
+	blabla
+
+- added_file_2
+	blablou
+
+```
+
+So I made this program in order to generate this file for me from the ```git status –-porcelain``` output.
+
+## Problems
+
+If I’ve added a file that is not 
+
+
+
+## Usage
 
 commit_text.txt
 
@@ -15,7 +35,7 @@ commit_text.txt
     Blabla
 
 - file2.rs:
-		Bablou
+    Bablou
 ```
 
 ```bash
@@ -42,7 +62,7 @@ Do you want to edit the commit message? (y/n) default: y
 
 If the user select yes to commit, it’ll just commit with the passed argument and the message in the ‘commit_text.txt’ file.
 
-Else, the user is aked if he want’s to edit the commit message. If yes is selected, the program will generate the following git structure.
+Else, the user is aked if he wants to edit the commit message. If yes is selected, the program will generate the following file.
 ```
 [commit_nb]
 

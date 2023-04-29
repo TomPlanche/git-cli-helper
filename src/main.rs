@@ -4,17 +4,18 @@
 /// Read the [README.md](../README.md) for more information.
 
 // Imports ================================================================================= Imports
-mod git_related;
 mod utils;
+mod git_related;
 
 use std::io::prelude::*;
 use std::path::Path;
 
+use dialoguer::{Confirm, MultiSelect};
 use ansi_term::Colour::{Red, Green};
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
-const COMMITIGNORE_FILE_PATH: &str = ".git/hooks/commit-msg";
+const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 
 // Function(s) =========================================================================== Functions
 ///
@@ -32,8 +33,10 @@ fn prepare_commit_msg(path: &Path) {
     // Get the location of the file passed by 'path'
     // ex: path = /home/user/project/src/main.rs
     // get the location of the file: /home/user/project/src/
-    // let path = path.parent().unwrap();
+    let folder_path = path.parent().unwrap();
 
+    // Get the path to the commit message file
+    let comitignore_path = folder_path.join(COMMITIGNORE_FILE_PATH);
 
 
     // If the COMMIT_MESSAGE_FILE exists
@@ -50,7 +53,9 @@ fn prepare_commit_msg(path: &Path) {
     // Read the git status
     let modified_files: Vec<String> = git_related::process_git_status(&git_related::read_git_status());
 
-    print!("{} {}", Green.paint("Modified files:"), modified_files.join(", "));
+
+
+
     // The commit message file
     let mut commit_file = std::fs::OpenOptions::new()
         .append(true) // Append to the file
@@ -59,25 +64,27 @@ fn prepare_commit_msg(path: &Path) {
 
     let commit_number: u8 = git_related::get_current_commit_nb(None) + 1;
 
+
     if let Err(e) = writeln!(commit_file, "[{}]\n\n", commit_number) {
         eprintln!("Couldn't write to file: {}", e);
     }
 
     // For each modified file
     for file in modified_files {
+        // If the file is not a file in the commitignore file
+        // or is not in a folder in the commitignore file
+        if comitignore_path.exists() {
+            let commitignore_items: Vec<String> = git_related::process_gitignore_file(&path);
+
+            if commitignore_items.contains(&file) &&
+                commitignore_items.contains(&format!("{}/", file)) {
+                continue
+            }
+        }
+
         if let Err(e) = writeln!(commit_file, "- {}:\n\t\n", file) {
             eprintln!("Couldn't write to file: {}", e);
         }
-    }
-}
-
-
-fn process_gitignore_file(path: &Path) {
-    for line in utils::read_file(path).lines() {
-        if line.starts_with("#") {
-            continue;
-        }
-
     }
 }
 
@@ -112,7 +119,10 @@ fn main() {
         println!("\nCommit message: \n{}\n{}\n{}", delimiter, commit_message, delimiter);
 
         // User Validation
-        if utils::ask_user_validation("Do you want to commit with this message?", None) {
+        if Confirm::new()
+            .with_prompt("Do you want to commit with this message?")
+            .interact()
+            .unwrap() {
             // Commit
             println!("\nCommiting...");
 
@@ -141,7 +151,11 @@ fn main() {
 
         } else {
             // If the user doesn't want to commit with this message
-            if utils::ask_user_validation("Do you want to edit the commit message?", Some('y')) {
+            if Confirm::new()
+                .with_prompt("Do you want to edit the commit message?")
+                .default(true)
+                .interact()
+                .unwrap() {
                 prepare_commit_msg(commit_message_file_path);
             }
         }
