@@ -20,7 +20,8 @@ So I made this program in order to generate this file for me from the ```git sta
 
 ## Problems
 
-If I’ve added a file that is not 
+If I’ve added a file that is not needed in the commit file, I have to remove it every time.
+Si I've made the implementation of '.commitignore' file that works EXACTLY as the '.gitignore' file.
 
 
 
@@ -54,9 +55,9 @@ Commit Message:
 - file2.rs:
 		Bablou
 ------------------------------------------------
-Do you want to commit with this message? (y/n) default: y
+Do you want to commit with this message? [Y/n]
 >> n
-Do you want to edit the commit message? (y/n) default: y
+Do you want to edit the commit message? [Y/n]
 >> y # or return
 ```
 
