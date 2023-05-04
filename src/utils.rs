@@ -4,7 +4,7 @@
 
 // Imports ================================================================================= Imports
 use std::path::Path;
-
+use ansi_term::Colour::{Red, Green};
 // Functions  ===========================================================================  Functions
 ///
 /// # read_file
@@ -23,4 +23,22 @@ pub fn read_file(path: &Path) -> String {
 
     // Return the file
     return content;
+}
+
+
+///
+/// # bye
+/// This function says bye.
+///
+/// ## Arguments
+/// * `happy` - If the user is happy or not
+///
+/// ## Returns
+/// * `()` - Nothing
+pub fn bye(happy: Option<bool>) {
+    match happy {
+        Some(true) => println!("{}", Green.paint("Bye!")),
+        Some(false) => println!("{}", Red.paint("Bye!")),
+        None => println!("{}", Red.paint("Bye!")),
+    }
 }

@@ -157,6 +157,9 @@ fn main() {
                 .interact()
                 .unwrap() {
                 prepare_commit_msg(commit_message_file_path);
+            } else {
+                // If the user doesn't want to edit the commit message
+                utils::bye(None);
             }
         }
 
@@ -167,6 +170,22 @@ fn main() {
             COMMIT_MESSAGE_FILE,
             Red.bold().paint("not found")
         );
+
+        if Confirm::new()
+            .with_prompt("Create it ?")
+            .interact()
+            .unwrap() {
+            // Create the file
+            std::fs::File::create(COMMIT_MESSAGE_FILE)
+                .expect("Something went wrong creating the file");
+
+            // Prepare the commit message
+            std::fs::File::create(COMMITIGNORE_FILE_PATH)
+                .expect("Something went wrong creating the file");
+        } else {
+            // If the user doesn't want to create the file
+            utils::bye(None);
+        }
     }
 
 }
