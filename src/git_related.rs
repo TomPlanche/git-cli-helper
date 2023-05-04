@@ -11,6 +11,34 @@ use crate::utils::read_file;
 
 // Functions  ===========================================================================  Functions
 ///
+/// # get_current_branch
+/// This function returns the current git branch.
+///
+/// ## Arguments
+/// * `()` - Nothing
+///
+/// ## Returns
+/// * `String` - The current git branch
+pub fn get_current_branch() -> String {
+    // Get the current branch
+    let output = std::process::Command::new("git")
+        .arg("rev-parse")
+        .arg("--abbrev-ref")
+        .arg("HEAD")
+        .output()
+        .expect("failed to execute process");
+
+    // Convert the output to a string
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    // Remove the '\n' at the end of the string
+    let output = output.trim();
+
+    // Return the current branch
+    return output.to_string();
+}
+
+///
 /// # get_current_commit_nb
 /// This function returns the number of commits.
 ///
@@ -23,7 +51,9 @@ pub fn get_current_commit_nb(branch: Option<&str>) -> u8 {
     let output = std::process::Command::new("git")
         .arg("rev-list")
         .arg("--count")
-        .arg(branch.unwrap_or("HEAD"))
+        .arg(branch.unwrap_or(
+            get_current_branch().as_str()
+        ))
         .output()
         .expect("failed to execute process");
 
