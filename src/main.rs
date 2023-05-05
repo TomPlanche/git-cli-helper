@@ -62,7 +62,7 @@ fn prepare_commit_msg(path: &Path) {
         .open(path)
         .unwrap();
 
-    let commit_number: u8 = git_related::get_current_commit_nb(None) + 1;
+    let commit_number: u16 = git_related::get_current_commit_nb(None) + 1;
 
 
     if let Err(e) = writeln!(commit_file, "[{}]\n\n", commit_number) {

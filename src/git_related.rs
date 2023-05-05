@@ -1,3 +1,4 @@
+use std::any::type_name;
 ///
 /// # git_related
 /// This module contains functions related to git.
@@ -47,7 +48,7 @@ pub fn get_current_branch() -> String {
 ///
 /// ## Returns
 /// * `u8` - The number of commits
-pub fn get_current_commit_nb(branch: Option<&str>) -> u8 {
+pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
     let output = std::process::Command::new("git")
         .arg("rev-list")
         .arg("--count")
@@ -61,7 +62,7 @@ pub fn get_current_commit_nb(branch: Option<&str>) -> u8 {
 
     let output = output.trim();
 
-    let output = output.parse::<u8>().unwrap();
+    let output = output.parse::<u16>().unwrap();
 
     return output;
 }
