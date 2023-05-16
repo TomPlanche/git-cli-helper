@@ -2,16 +2,17 @@
 /// This is the main file for the project.
 ///
 /// Read the [README.md](../README.md) for more information.
-
 // Imports ================================================================================= Imports
+#[path = "./utils.rs"]
 mod utils;
+#[path = "git_related.rs"]
 mod git_related;
 
 use std::io::prelude::*;
 use std::path::Path;
 
-use dialoguer::{Confirm, MultiSelect};
-use ansi_term::Colour::{Red, Green};
+use ansi_term::Colour::{Green, Red};
+use dialoguer::Confirm;
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
@@ -38,23 +39,19 @@ fn prepare_commit_msg(path: &Path) {
     // Get the path to the commit message file
     let comitignore_path = folder_path.join(COMMITIGNORE_FILE_PATH);
 
-
     // If the COMMIT_MESSAGE_FILE exists
     if path.exists() {
         // Empty the file
-        std::fs::write(path, "")
-            .expect("Something went wrong emptying the file");
+        std::fs::write(path, "").expect("Something went wrong emptying the file");
     } else {
         // Create the file
-        std::fs::File::create(path)
-            .expect("Something went wrong creating the file");
+        std::fs::File::create(path).expect("Something went wrong creating the file");
     }
 
     // Read the git status
-    let modified_files: Vec<String> = git_related::process_git_status(&git_related::read_git_status());
-
-
-
+    let modified_files: Vec<String> = git_related::process_git_status(
+        &git_related::read_git_status()
+    );
 
     // The commit message file
     let mut commit_file = std::fs::OpenOptions::new()
@@ -63,7 +60,6 @@ fn prepare_commit_msg(path: &Path) {
         .unwrap();
 
     let commit_number: u8 = git_related::get_current_commit_nb(None) + 1;
-
 
     if let Err(e) = writeln!(commit_file, "[{}]\n\n", commit_number) {
         eprintln!("Couldn't write to file: {}", e);
@@ -76,9 +72,10 @@ fn prepare_commit_msg(path: &Path) {
         if comitignore_path.exists() {
             let commitignore_items: Vec<String> = git_related::process_gitignore_file(&path);
 
-            if commitignore_items.contains(&file) &&
-                commitignore_items.contains(&format!("{}/", file)) {
-                continue
+            if commitignore_items.contains(&file)
+                && commitignore_items.contains(&format!("{}/", file))
+            {
+                continue;
             }
         }
 
@@ -86,6 +83,17 @@ fn prepare_commit_msg(path: &Path) {
             eprintln!("Couldn't write to file: {}", e);
         }
     }
+
+    // Close the file
+    commit_file.flush().unwrap();
+    drop(commit_file);
+
+    // Print a message
+    println!(
+        "{} {} ✅ ",
+        COMMIT_MESSAGE_FILE,
+        Green.bold().paint("created")
+    );
 }
 
 // MAIN ======================================================================================= MAIN
@@ -106,7 +114,8 @@ fn main() {
     // Looks if a file named COMMIT_MESSAGE_FILE exists in the 'caller' folder
     if commit_message_file_path.exists() {
         // If it exists, print a message
-        println!("{} {} ✅ ",
+        println!(
+            "{} {} ✅ ",
             COMMIT_MESSAGE_FILE,
             Green.bold().paint("found")
         );
@@ -116,13 +125,17 @@ fn main() {
 
         // Print the commit message
         let delimiter = "------------------------------------------------";
-        println!("\nCommit message: \n{}\n{}\n{}", delimiter, commit_message, delimiter);
+        println!(
+            "\nCommit message: \n{}\n{}\n{}",
+            delimiter, commit_message, delimiter
+        );
 
         // User Validation
         if Confirm::new()
             .with_prompt("Do you want to commit with this message?")
             .interact()
-            .unwrap() {
+            .unwrap()
+        {
             // Commit
             println!("\nCommiting...");
 
@@ -139,16 +152,11 @@ fn main() {
             // If the command was successful
             if command.status.success() {
                 // Print a success message
-                println!("{}",
-                    Green.bold().paint("Commit successful.")
-                );
+                println!("{}", Green.bold().paint("Commit successful."));
             } else {
                 // Print an error message
-                println!("{}",
-                    Red.bold().paint("Commit failed.")
-                );
+                println!("{}", Red.bold().paint("Commit failed."));
             }
-
         } else {
             // If the user doesn't want to commit with this message
             if Confirm::new()
@@ -162,10 +170,10 @@ fn main() {
                 utils::bye(None);
             }
         }
-
     } else {
         // If it doesn't exist, print an error message
-        println!("{}/{} {} ❌ ",
+        println!(
+            "{}/{} {} ❌ ",
             caller.display(),
             COMMIT_MESSAGE_FILE,
             Red.bold().paint("not found")
@@ -187,5 +195,4 @@ fn main() {
             utils::bye(None);
         }
     }
-
 }
