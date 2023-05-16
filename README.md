@@ -53,7 +53,7 @@ Commit Message:
     Blabla
 
 - file2.rs:
-		Bablou
+    Bablou
 ------------------------------------------------
 Do you want to commit with this message? [Y/n]
 >> n
