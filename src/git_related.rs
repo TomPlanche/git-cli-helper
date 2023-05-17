@@ -1,4 +1,3 @@
-use std::any::type_name;
 ///
 /// # git_related
 /// This module contains functions related to git.
@@ -82,7 +81,7 @@ pub fn process_git_status(message: &String) -> Vec<String> {
     // Added files are indicated by a 'A' at the beginning of the line
 
     // Regex to match the modified files and the added files
-    let regex_rule = regex::Regex::new(r"^[A|M]\s+(.*)$").unwrap();
+    let regex_rule = regex::Regex::new(r"^[MTARCU][A-Z\?\! ]\s(.*)$").unwrap();
 
     // Create a vector to store the modified / added files while parsing the git status message
     let mut modified_files: Vec<String> = Vec::new();
@@ -165,3 +164,47 @@ pub fn read_git_status() -> String {
         String::from("")
     }
 }
+
+
+// Tests ==================================================================================== Tests
+#[test]
+fn test_get_current_branch() {
+    assert_eq!(get_current_branch(), "master");
+}
+
+#[test]
+fn test_reegex_process_git_status() {
+    let lines: Vec<&str> = vec![
+        " M src/git_related.rs",
+        "M  src/main.rs",
+        "AM src/utils.rs",
+        "?? src/README.md",
+        "UU src/bla.rs",
+        "!! src/bli.rs",
+        "DD src/blo.rs",
+        "R  src/blu.rs",
+        "C  src/bly.rs",
+        "U  src/pae.rs",
+    ];
+
+    let regex_rule = regex::Regex::new(r"^[MTARCU][A-Z\?\! ]\s(.*)$").unwrap();
+
+    let mut modified_files: Vec<String> = Vec::new();
+
+    for line in lines {
+        if regex_rule.is_match(line) {
+            let file_name = regex_rule.captures(line).unwrap().get(1).unwrap().as_str();
+            modified_files.push(file_name.to_string());
+        }
+    }
+
+    assert_eq!(modified_files, vec![
+        "src/main.rs",
+        "src/utils.rs",
+        "src/bla.rs",
+        "src/blu.rs",
+        "src/bly.rs",
+        "src/pae.rs",
+    ]);
+}
+
