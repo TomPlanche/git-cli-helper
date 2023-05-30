@@ -11,8 +11,9 @@ mod git_related;
 use std::io::prelude::*;
 use std::path::Path;
 
-use ansi_term::Colour::{Green, Red};
+use ansi_term::Colour::{Green, Yellow, Red};
 use dialoguer::Confirm;
+use crate::git_related::{get_current_branch, get_current_commit_nb};
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
@@ -119,6 +120,23 @@ fn main() {
             COMMIT_MESSAGE_FILE,
             Green.bold().paint("found")
         );
+
+        let commitignore_path_str = format!("{}/{}", caller.display(), COMMITIGNORE_FILE_PATH);
+        let commitignore_path = Path::new(&commitignore_path_str);
+
+        if commitignore_path.exists() {
+            println!(
+                "{} {} ✅ ",
+                COMMITIGNORE_FILE_PATH,
+                Green.bold().paint("found")
+            );
+        } else {
+            println!(
+                "{} {} ❌ ",
+                COMMITIGNORE_FILE_PATH,
+                Yellow.bold().paint("not found")
+            );
+        }
 
         // Read the file
         let commit_message = utils::read_file(commit_message_file_path);

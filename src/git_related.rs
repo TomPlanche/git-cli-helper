@@ -61,7 +61,7 @@ pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
 
     let output = output.trim();
 
-    let output = output.parse::<u16>().unwrap();
+    let output = output.parse::<u16>().unwrap_or(0);
 
     return output;
 }
