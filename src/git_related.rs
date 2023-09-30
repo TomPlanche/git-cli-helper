@@ -1,13 +1,10 @@
+use crate::utils::read_file;
 ///
 /// # git_related
 /// This module contains functions related to git.
-
 // Imports ================================================================================= Imports
-
-
-use ansi_term::Colour::{Red};
+use ansi_term::Colour::Red;
 use std::path::Path;
-use crate::utils::read_file;
 
 // Functions  ===========================================================================  Functions
 ///
@@ -51,19 +48,14 @@ pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
     let output = std::process::Command::new("git")
         .arg("rev-list")
         .arg("--count")
-        .arg(branch.unwrap_or(
-            get_current_branch().as_str()
-        ))
+        .arg(branch.unwrap_or(get_current_branch().as_str()))
         .output()
         .expect("failed to execute process");
 
-    let output = String::from_utf8_lossy(&output.stdout);
-
-    let output = output.trim();
-
-    let output = output.parse::<u16>().unwrap_or(0);
-
-    return output;
+    return String::from_utf8_lossy(&output.stdout)
+        .trim()
+        .parse::<u16>()
+        .unwrap_or(0);
 }
 
 ///
@@ -129,7 +121,6 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
             // Add the file or folder name to the vector
             files_to_ignore.push(line.to_string());
         }
-
     }
 
     return files_to_ignore;
@@ -157,14 +148,11 @@ pub fn read_git_status() -> String {
         output.to_string()
     } else {
         // Print an error message
-        println!("{}",
-                 Red.bold().paint("Failed to read git status.")
-        );
+        println!("{}", Red.bold().paint("Failed to read git status."));
 
         String::from("")
-    }
+    };
 }
-
 
 // Tests ==================================================================================== Tests
 #[test]
@@ -198,13 +186,15 @@ fn test_reegex_process_git_status() {
         }
     }
 
-    assert_eq!(modified_files, vec![
-        "src/main.rs",
-        "src/utils.rs",
-        "src/bla.rs",
-        "src/blu.rs",
-        "src/bly.rs",
-        "src/pae.rs",
-    ]);
+    assert_eq!(
+        modified_files,
+        vec![
+            "src/main.rs",
+            "src/utils.rs",
+            "src/bla.rs",
+            "src/blu.rs",
+            "src/bly.rs",
+            "src/pae.rs",
+        ]
+    );
 }
-

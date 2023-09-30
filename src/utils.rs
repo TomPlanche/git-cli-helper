@@ -1,10 +1,9 @@
+use ansi_term::Colour::{Green, Red};
 ///
 /// # utils.rs
 /// This module contains the utils functions.
-
 // Imports ================================================================================= Imports
 use std::path::Path;
-use ansi_term::Colour::{Red, Green};
 // Functions  ===========================================================================  Functions
 ///
 /// # read_file
@@ -18,13 +17,9 @@ use ansi_term::Colour::{Red, Green};
 /// * `String` - The content of the file
 pub fn read_file(path: &Path) -> String {
     // Read the file
-    let content: String = std::fs::read_to_string(path)
-        .expect("Something went wrong reading the file");
-
     // Return the file
-    return content;
+    return std::fs::read_to_string(path).expect("Something went wrong reading the file");
 }
-
 
 ///
 /// # bye

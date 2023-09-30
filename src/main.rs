@@ -5,18 +5,18 @@
 // Imports ================================================================================= Imports
 #[path = "./utils.rs"]
 mod utils;
+
 #[path = "git_related.rs"]
 mod git_related;
 
 use std::io::prelude::*;
 use std::path::Path;
 
-use ansi_term::Colour::{Green, Yellow, Red};
+use ansi_term::Colour::{Green, Red, Yellow};
 use dialoguer::Confirm;
-use crate::git_related::{get_current_branch, get_current_commit_nb};
 
 // Constants  ===========================================================================  Constants
-const COMMIT_MESSAGE_FILE: &str = "commit_message.txt";
+const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
 const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 
 // Function(s) =========================================================================== Functions
@@ -50,9 +50,8 @@ fn prepare_commit_msg(path: &Path) {
     }
 
     // Read the git status
-    let modified_files: Vec<String> = git_related::process_git_status(
-        &git_related::read_git_status()
-    );
+    let modified_files: Vec<String> =
+        git_related::process_git_status(&git_related::read_git_status());
 
     // The commit message file
     let mut commit_file = std::fs::OpenOptions::new()
@@ -181,7 +180,8 @@ fn main() {
                 .with_prompt("Do you want to edit the commit message?")
                 .default(true)
                 .interact()
-                .unwrap() {
+                .unwrap()
+            {
                 prepare_commit_msg(commit_message_file_path);
             } else {
                 // If the user doesn't want to edit the commit message
@@ -200,7 +200,8 @@ fn main() {
         if Confirm::new()
             .with_prompt("Create it ?")
             .interact()
-            .unwrap() {
+            .unwrap()
+        {
             // Create the file
             std::fs::File::create(COMMIT_MESSAGE_FILE)
                 .expect("Something went wrong creating the file");
