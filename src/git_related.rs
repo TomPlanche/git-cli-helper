@@ -1,8 +1,9 @@
-use crate::utils::read_file;
 ///
 /// # git_related
 /// This module contains functions related to git.
 // Imports ================================================================================= Imports
+use crate::utils::read_file;
+
 use ansi_term::Colour::Red;
 use std::path::Path;
 

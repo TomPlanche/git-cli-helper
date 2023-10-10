@@ -79,7 +79,7 @@ fn prepare_commit_msg(path: &Path) {
             }
         }
 
-        if let Err(e) = writeln!(commit_file, "- {}:\n\t\n", file) {
+        if let Err(e) = writeln!(commit_file, "- `{}`:\n\t\n", file) {
             eprintln!("Couldn't write to file: {}", e);
         }
     }

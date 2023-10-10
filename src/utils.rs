@@ -1,8 +1,8 @@
-use ansi_term::Colour::{Green, Red};
 ///
 /// # utils.rs
 /// This module contains the utils functions.
 // Imports ================================================================================= Imports
+use ansi_term::Colour::{Green, Red};
 use std::path::Path;
 // Functions  ===========================================================================  Functions
 ///
