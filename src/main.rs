@@ -1,5 +1,9 @@
 /// # main.rs
-/// This is the main file for the project.
+/// Main file for the project.
+///
+/// ## Arguments
+/// * `-n` - Used for directly generating a new 'commit_message.md'
+/// * `-y` - Used for directly `git commit`.
 ///
 /// Read the [README.md](../README.md) for more information.
 // Imports ================================================================================= Imports
@@ -9,11 +13,13 @@ mod utils;
 #[path = "git_related.rs"]
 mod git_related;
 
+use std::env::args;
 use std::io::prelude::*;
 use std::path::Path;
 
 use ansi_term::Colour::{Green, Red, Yellow};
 use dialoguer::Confirm;
+use git_related::commit;
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
@@ -22,9 +28,9 @@ const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 // Function(s) =========================================================================== Functions
 ///
 /// # prepare_commit_msg
-/// This function prepares the commit message.
-/// It will create the commit message file and empty it if it already exists.
-/// It will also add the modified / added files to the commit message file.
+/// Prepares the commit message.
+/// It creates the commit message file and empty it if it already exists.
+/// It also adds the modified / added files to the commit message file.
 ///
 /// ## Arguments
 /// * `source` - The source folder
@@ -79,7 +85,7 @@ fn prepare_commit_msg(path: &Path) {
             }
         }
 
-        if let Err(e) = writeln!(commit_file, "- `{}`:\n\t\n", file) {
+        if let Err(e) = writeln!(commit_file, "- `{}`:\n\n\t\n", file) {
             eprintln!("Couldn't write to file: {}", e);
         }
     }
@@ -96,33 +102,43 @@ fn prepare_commit_msg(path: &Path) {
     );
 }
 
-// MAIN ======================================================================================= MAIN
-/// # Main function
-fn main() {
-    // Read the passed arguments
-    let mut args: Vec<String> = std::env::args().collect();
-
-    // Remove the two first arguments (the program name and the path to the program)
-    args.remove(0);
-
-    // Folder caller - the folder from which the program was called
-    let caller = std::env::current_dir().unwrap();
-
-    let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
-    let commit_message_file_path = Path::new(&commit_message_file_path_str);
-
-    // Looks if a file named COMMIT_MESSAGE_FILE exists in the 'caller' folder
-    if commit_message_file_path.exists() {
+///
+/// # handle_message_exists
+/// Handles the case where the commit message file already exists.
+///
+/// ## Arguments
+/// * `caller` - The folder from which the program was called
+/// * `commit_message_file_path` - The path to the commit message file
+/// * `confirm` - CLI confirmation or direct commit
+/// * `commit_message` - The commit message
+/// * `args` - The passed arguments
+/// * `verbose` - If the program should print messages
+///
+/// ## Returns
+/// * `()` - Nothing
+fn handle_message_exists(
+    caller: &Path,
+    commit_message_file_path: &Path,
+    confirm: bool,
+    args: Vec<String>,
+    verbose: bool,
+) {
+    if verbose {
         // If it exists, print a message
         println!(
             "{} {} ✅ ",
             COMMIT_MESSAGE_FILE,
             Green.bold().paint("found")
         );
+    }
 
-        let commitignore_path_str = format!("{}/{}", caller.display(), COMMITIGNORE_FILE_PATH);
-        let commitignore_path = Path::new(&commitignore_path_str);
+    let commitignore_path_str = format!("{}/{}", caller.display(), COMMITIGNORE_FILE_PATH);
+    let commitignore_path = Path::new(&commitignore_path_str);
 
+    // Read the file
+    let commit_message = utils::read_file(commit_message_file_path);
+
+    if verbose {
         if commitignore_path.exists() {
             println!(
                 "{} {} ✅ ",
@@ -136,44 +152,25 @@ fn main() {
                 Yellow.bold().paint("not found")
             );
         }
+    }
 
-        // Read the file
-        let commit_message = utils::read_file(commit_message_file_path);
-
-        // Print the commit message
+    // Print the commit message
+    if verbose {
         let delimiter = "------------------------------------------------";
         println!(
             "\nCommit message: \n{}\n{}\n{}",
             delimiter, commit_message, delimiter
         );
+    }
 
+    if confirm {
         // User Validation
         if Confirm::new()
             .with_prompt("Do you want to commit with this message?")
             .interact()
             .unwrap()
         {
-            // Commit
-            println!("\nCommiting...");
-
-            // Command
-            let command = std::process::Command::new("git")
-                .arg("commit")
-                // If the args are not empty, pass them to the command
-                .args(&args)
-                .arg("-m")
-                .arg(commit_message)
-                .output()
-                .expect("failed to execute process");
-
-            // If the command was successful
-            if command.status.success() {
-                // Print a success message
-                println!("{}", Green.bold().paint("Commit successful."));
-            } else {
-                // Print an error message
-                println!("{}", Red.bold().paint("Commit failed."));
-            }
+            commit(commit_message, &args).expect("Error commiting the changes");
         } else {
             // If the user doesn't want to commit with this message
             if Confirm::new()
@@ -189,6 +186,27 @@ fn main() {
             }
         }
     } else {
+        commit(commit_message, &args).expect("Error commiting the changes");
+    }
+}
+
+///
+/// # handle_message_doesnt_exist
+/// Handles the case where the commit message file doesn't exist.
+///
+/// ## Arguments
+/// * `caller` - The folder from which the program was called
+/// * `confirm` - CLI confirmation or direct creation
+/// * `verbose` - If the program should print messages
+///
+/// ## Returns
+/// * `()` - Nothing
+fn handle_message_doesnt_exist(
+    caller: &Path,
+    confirm: bool,
+    verbose: bool,
+) {
+    if verbose {
         // If it doesn't exist, print an error message
         println!(
             "{}/{} {} ❌ ",
@@ -196,22 +214,97 @@ fn main() {
             COMMIT_MESSAGE_FILE,
             Red.bold().paint("not found")
         );
+    }
 
+    if confirm {
         if Confirm::new()
             .with_prompt("Create it ?")
             .interact()
             .unwrap()
         {
-            // Create the file
-            std::fs::File::create(COMMIT_MESSAGE_FILE)
-                .expect("Something went wrong creating the file");
-
-            // Prepare the commit message
-            std::fs::File::create(COMMITIGNORE_FILE_PATH)
-                .expect("Something went wrong creating the file");
+            create_needed_files();
         } else {
             // If the user doesn't want to create the file
             utils::bye(None);
         }
+    } else {
+        create_needed_files();
+    }
+}
+
+///
+/// # create_needed_files
+/// Creates the needed files.
+///
+/// ## Returns
+/// * `()` - Nothing
+fn create_needed_files() {
+    // Create the file
+    std::fs::File::create(COMMIT_MESSAGE_FILE)
+        .expect("Something went wrong creating the file");
+
+    // Prepare the commit message
+    std::fs::File::create(COMMITIGNORE_FILE_PATH)
+        .expect("Something went wrong creating the file");
+}
+// MAIN ======================================================================================= MAIN
+/// # Main function
+fn main() {
+    // Read the passed arguments
+    let args: Vec<String> = args().skip(1).collect();
+
+    // Folder caller - the folder from which the program was called
+    let caller = std::env::current_dir().unwrap();
+
+    let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
+    let commit_message_file_path = Path::new(&commit_message_file_path_str);
+
+    // Check if the '-v' argument is passed
+    let verbose: bool = args.contains(&"-v".to_string());
+
+    if args.len() > 0 {
+        // If the '-y' argument is passed
+        if args[0] == "-y".to_string() {
+            if commit_message_file_path.exists() {
+                // Read the file
+                let commit_message = utils::read_file(commit_message_file_path);
+
+                // Commit the changes
+                commit(commit_message, &args).expect("Error commiting the changes");
+            } else {
+                // Crash the program
+                panic!("{} {} ❌ ", COMMIT_MESSAGE_FILE, Red.bold().paint("not found"));
+            }
+
+            return;
+        }
+
+        // If the '-n' argument is passed
+        if args[0] == "-n".to_string() {
+            // Create the needed files
+            create_needed_files();
+
+            // Prepare the commit message
+            prepare_commit_msg(commit_message_file_path);
+
+            return;
+        }
+    }
+
+    // Looks if a file named COMMIT_MESSAGE_FILE exists in the 'caller' folder
+    if commit_message_file_path.exists() {
+        handle_message_exists(
+            &caller,
+            &commit_message_file_path,
+            true,
+            args,
+            verbose
+        );
+    } else {
+        handle_message_doesnt_exist(
+            &caller,
+            true,
+            verbose
+        );
     }
 }

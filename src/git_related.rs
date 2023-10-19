@@ -1,16 +1,62 @@
 ///
 /// # git_related
-/// This module contains functions related to git.
+/// Contains functions related to git.
+
 // Imports ================================================================================= Imports
 use crate::utils::read_file;
 
-use ansi_term::Colour::Red;
+use ansi_term::Colour::{Red, Green};
 use std::path::Path;
 
 // Functions  ===========================================================================  Functions
 ///
+/// # commit
+/// Commits the changes.
+///
+/// ## Arguments
+/// * `message` - The commit message
+/// * `args` - The arguments passed to the program
+///
+/// ## Returns
+/// * `Result<(), String>` - The result of the commit
+pub fn commit(message: String, args: &Vec<String>) -> Result<(), String> {
+    println!("\nCommiting...");
+
+    let mut final_args: Vec<&str> = vec![
+        "commit",
+        "-m",
+        message.as_str(),
+    ];
+
+    if args.len() > 0 {
+        for arg in args {
+            final_args.push(arg.as_str());
+        }
+    }
+
+    // Command
+    let command = std::process::Command::new("git")
+        .args(final_args)
+        .output()
+        .expect("failed to execute process");
+
+    // If the command was successful
+    if command.status.success() {
+        // Print a success message
+        println!("{}", Green.bold().paint("Commit successful."));
+
+        Ok(())
+    } else {
+        // Print an error message
+        println!("{}", Red.bold().paint("Commit failed."));
+
+        Err("Commit failed.".to_string())
+    }
+}
+
+///
 /// # get_current_branch
-/// This function returns the current git branch.
+/// Returns the current git branch.
 ///
 /// ## Arguments
 /// * `()` - Nothing
@@ -38,7 +84,7 @@ pub fn get_current_branch() -> String {
 
 ///
 /// # get_current_commit_nb
-/// This function returns the number of commits.
+/// Returns the number of commits.
 ///
 /// ## Arguments
 /// * `branch` - The branch to check - optional - (default: HEAD)
@@ -61,7 +107,7 @@ pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
 
 ///
 /// # process_git_status
-/// This function processes the git status.
+/// Processes the git status.
 /// It will parse the git status in order to prepare the git commit message.
 ///
 /// ## Arguments
@@ -97,7 +143,7 @@ pub fn process_git_status(message: &String) -> Vec<String> {
 
 ///
 /// # process_gitignore_file
-/// This function processes the gitignore file.
+/// Processes the gitignore file.
 ///
 /// ## Arguments
 /// * `path` - The path to the gitignore file
@@ -129,7 +175,7 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
 
 ///
 /// # read_git_status
-/// This function reads the git status.
+/// Reads the git status.
 ///
 /// ## Returns
 /// * `String` - The git status
