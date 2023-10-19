@@ -24,7 +24,7 @@ use git_related::commit;
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
 const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
-
+const ACCEPTED_ARGS: [&str; 2] = ["-n", "-y"];
 // Function(s) =========================================================================== Functions
 ///
 /// # prepare_commit_msg
@@ -156,11 +156,7 @@ fn handle_message_exists(
 
     // Print the commit message
     if verbose {
-        let delimiter = "------------------------------------------------";
-        println!(
-            "\nCommit message: \n{}\n{}\n{}",
-            delimiter, commit_message, delimiter
-        );
+        print_commit_message(commit_message.clone());
     }
 
     if confirm {
@@ -247,6 +243,23 @@ fn create_needed_files() {
     std::fs::File::create(COMMITIGNORE_FILE_PATH)
         .expect("Something went wrong creating the file");
 }
+
+///
+/// # print_commit_message
+/// Prints the commit message.
+///
+/// ## Arguments
+/// * `commit_message` - The commit message
+///
+/// ## Returns
+/// * `()` - Nothing
+fn print_commit_message(commit_message: String) {
+    let delimiter = "------------------------------------------------";
+    println!(
+        "\nCommit message: \n{}\n{}\n{}",
+        delimiter, commit_message, delimiter
+    );
+}
 // MAIN ======================================================================================= MAIN
 /// # Main function
 fn main() {
@@ -268,6 +281,8 @@ fn main() {
             if commit_message_file_path.exists() {
                 // Read the file
                 let commit_message = utils::read_file(commit_message_file_path);
+
+                print_commit_message(commit_message.clone());
 
                 // Commit the changes
                 commit(commit_message, &args).expect("Error commiting the changes");

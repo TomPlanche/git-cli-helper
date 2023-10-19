@@ -7,8 +7,31 @@ use crate::utils::read_file;
 
 use ansi_term::Colour::{Red, Green};
 use std::path::Path;
+use std::process::Command;
+use crate::ACCEPTED_ARGS;
 
 // Functions  ===========================================================================  Functions
+/// # clear_args
+/// Clears the passed arguments by removing the '-n' and '-y' arguments.
+///
+/// ## Arguments
+/// * `args` - The passed arguments
+///
+/// ## Returns
+/// * `Vec<String>` - The cleared arguments
+fn clear_args(args: &Vec<String>) -> Vec<String> {
+    let mut cleared_args: Vec<String> = vec![];
+
+    for arg in args {
+        if !ACCEPTED_ARGS.contains(&arg.as_str()) {
+            cleared_args.push(arg.to_string());
+        }
+    }
+
+    return cleared_args;
+}
+
+
 ///
 /// # commit
 /// Commits the changes.
@@ -28,14 +51,16 @@ pub fn commit(message: String, args: &Vec<String>) -> Result<(), String> {
         message.as_str(),
     ];
 
+    let cleared_args = clear_args(args);
+
     if args.len() > 0 {
-        for arg in args {
+        for arg in &cleared_args {
             final_args.push(arg.as_str());
         }
     }
 
     // Command
-    let command = std::process::Command::new("git")
+    let command = Command::new("git")
         .args(final_args)
         .output()
         .expect("failed to execute process");
