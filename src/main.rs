@@ -2,8 +2,11 @@
 /// Main file for the project.
 ///
 /// ## Arguments
-/// * `-n` - Used for directly generating a new 'commit_message.md'
-/// * `-y` - Used for directly `git commit`.
+/// * `-n` | `--no` - Used for directly generating the `commit_message.md` file.
+/// * `-y` | `--yes` - Used for directly commiting the changes.
+/// * `-v` | `--verbose` - Used for verbose the operation.
+/// * `-h` | `--help` - Used for printing the help message.
+///
 ///
 /// Read the [README.md](../README.md) for more information.
 // Imports ================================================================================= Imports
@@ -27,11 +30,12 @@ const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 
 // Cli parser
 #[derive(Parser)]
-#[command(name = "custom-git-commit")]
-#[command(author = "Tom P. <tomplanche@icloud.com>")]
 #[command(about = "Custom program that can:\n\
 \t- Commit with the current 'commit_message.md' file text.\n\
 \t- Generates the 'commit_message.md' file.")]
+#[command(author = "Tom P. <tomplanche@icloud.com>")]
+#[command(help_template = "{about}\nMade by: {author}\n\nUSAGE:\n{usage}\n\n{all-args}\n")]
+#[command(name = "custom-git-commit")]
 struct Cli {
     /// Optional 'yes' argument.
     /// Directly commit the file with the text in `commit_message.md'.
