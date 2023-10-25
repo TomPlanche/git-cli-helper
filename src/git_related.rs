@@ -8,56 +8,25 @@ use crate::utils::read_file;
 use ansi_term::Colour::{Red, Green};
 use std::path::Path;
 use std::process::Command;
-use crate::ACCEPTED_ARGS;
 
 // Functions  ===========================================================================  Functions
-/// # clear_args
-/// Clears the passed arguments by removing the '-n' and '-y' arguments.
-///
-/// ## Arguments
-/// * `args` - The passed arguments
-///
-/// ## Returns
-/// * `Vec<String>` - The cleared arguments
-fn clear_args(args: &Vec<String>) -> Vec<String> {
-    let mut cleared_args: Vec<String> = vec![];
-
-    for arg in args {
-        if !ACCEPTED_ARGS.contains(&arg.as_str()) {
-            cleared_args.push(arg.to_string());
-        }
-    }
-
-    return cleared_args;
-}
-
-
 ///
 /// # commit
 /// Commits the changes.
 ///
 /// ## Arguments
 /// * `message` - The commit message
-/// * `args` - The arguments passed to the program
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the commit
-pub fn commit(message: String, args: &Vec<String>) -> Result<(), String> {
+pub fn commit(message: String) -> Result<(), String> {
     println!("\nCommiting...");
 
-    let mut final_args: Vec<&str> = vec![
+    let final_args: Vec<&str> = vec![
         "commit",
         "-m",
         message.as_str(),
     ];
-
-    let cleared_args = clear_args(args);
-
-    if args.len() > 0 {
-        for arg in &cleared_args {
-            final_args.push(arg.as_str());
-        }
-    }
 
     // Command
     let command = Command::new("git")
@@ -90,7 +59,7 @@ pub fn commit(message: String, args: &Vec<String>) -> Result<(), String> {
 /// * `String` - The current git branch
 pub fn get_current_branch() -> String {
     // Get the current branch
-    let output = std::process::Command::new("git")
+    let output = Command::new("git")
         .arg("rev-parse")
         .arg("--abbrev-ref")
         .arg("HEAD")
@@ -117,7 +86,7 @@ pub fn get_current_branch() -> String {
 /// ## Returns
 /// * `u8` - The number of commits
 pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
-    let output = std::process::Command::new("git")
+    let output = Command::new("git")
         .arg("rev-list")
         .arg("--count")
         .arg(branch.unwrap_or(get_current_branch().as_str()))
@@ -206,7 +175,7 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
 /// * `String` - The git status
 pub fn read_git_status() -> String {
     // Command
-    let command = std::process::Command::new("git")
+    let command = Command::new("git")
         .arg("status")
         .arg("--porcelain")
         .output()
