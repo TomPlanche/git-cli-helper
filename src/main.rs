@@ -2,9 +2,13 @@
 /// Main file for the project.
 ///
 /// ## Arguments
-/// * `-n` | `--no` - Used for directly generating the `commit_message.md` file.
-/// * `-y` | `--yes` - Used for directly commiting the changes.
+/// * `-g` | `--generate` - Used for directly generating the `commit_message.md` file.
+/// * `-c` | `--commit` - Used for directly commiting the changes.
+///     + -p | --push - Used for directly pushing the changes.
+///     + [git push args] - The args that will be passed to `git push` if the `-p` argument is passed.
 /// * `-v` | `--verbose` - Used for verbose the operation.
+///
+///
 /// * `-h` | `--help` - Used for printing the help message.
 ///
 ///
@@ -19,14 +23,16 @@ mod git_related;
 use std::io::prelude::*;
 use std::path::Path;
 
-use ansi_term::Colour::{Green, Red, Yellow};
+use ansi_term::Colour::{Green, Red};
 use clap::{Parser};
-use dialoguer::Confirm;
 use git_related::commit;
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
 const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
+
+// Args commands
+
 
 // Cli parser
 #[derive(Parser)]
@@ -37,20 +43,31 @@ const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 #[command(help_template = "{about}\nMade by: {author}\n\nUSAGE:\n{usage}\n\n{all-args}\n")]
 #[command(name = "custom-git-commit")]
 struct Cli {
-    /// Optional 'yes' argument.
+    /// Optional 'commit' argument.
     /// Directly commit the file with the text in `commit_message.md'.
-    #[clap(short, long)]
-    yes: bool,
+    #[arg(short, long)]
+    commit: bool,
 
-    /// Optional 'no' argument.
-    /// Generates the `commit_message.md' file.
-    #[clap(short, long)]
-    no: bool,
+    // If the '-p' argument is passed
+    /// Optional 'push' argument. Only works if the 'commit' argument is passed.
+    #[arg(short, long)]
+    push: bool,
+
+    /// Optional 'push args' argument. Only works if the 'commit' and 'push' arguments are passed.
+    #[arg(short, long)]
+    args: Option<Vec<String>>,
+
+
+    /// Optional 'generate' argument.
+    /// Directly generate the `commit_message.md` file.
+    #[arg(short, long)]
+    generate: bool,
 
     /// Verbose the operation.
     #[arg(short, long)]
     verbose: bool,
 }
+
 // Function(s) =========================================================================== Functions
 ///
 /// # prepare_commit_msg
@@ -60,10 +77,14 @@ struct Cli {
 ///
 /// ## Arguments
 /// * `source` - The source folder
+/// * `verbose` - Verbose the operation
 ///
 /// ## Returns
 /// * `()` - Nothing
-fn prepare_commit_msg(path: &Path) {
+fn prepare_commit_msg(
+    path: &Path,
+    verbose: bool,
+) {
     // Get the location of the file passed by 'path'
     // ex: path = /home/user/project/src/main.rs
     // get the location of the file: /home/user/project/src/
@@ -120,135 +141,13 @@ fn prepare_commit_msg(path: &Path) {
     commit_file.flush().unwrap();
     drop(commit_file);
 
-    // Print a message
-    println!(
-        "{} {} ✅ ",
-        COMMIT_MESSAGE_FILE,
-        Green.bold().paint("created")
-    );
-}
-
-///
-/// # handle_message_exists
-/// Handles the case where the commit message file already exists.
-///
-/// ## Arguments
-/// * `caller` - The folder from which the program was called
-/// * `commit_message_file_path` - The path to the commit message file
-/// * `confirm` - CLI confirmation or direct commit
-/// * `commit_message` - The commit message
-/// * `verbose` - If the program should print messages
-///
-/// ## Returns
-/// * `()` - Nothing
-fn handle_message_exists(
-    caller: &Path,
-    commit_message_file_path: &Path,
-    confirm: bool,
-    verbose: bool,
-) {
     if verbose {
-        // If it exists, print a message
+        // Print a message
         println!(
             "{} {} ✅ ",
             COMMIT_MESSAGE_FILE,
-            Green.bold().paint("found")
+            Green.bold().paint("created")
         );
-    }
-
-    let commitignore_path_str = format!("{}/{}", caller.display(), COMMITIGNORE_FILE_PATH);
-    let commitignore_path = Path::new(&commitignore_path_str);
-
-    // Read the file
-    let commit_message = utils::read_file(commit_message_file_path);
-
-    if verbose {
-        if commitignore_path.exists() {
-            println!(
-                "{} {} ✅ ",
-                COMMITIGNORE_FILE_PATH,
-                Green.bold().paint("found")
-            );
-        } else {
-            println!(
-                "{} {} ❌ ",
-                COMMITIGNORE_FILE_PATH,
-                Yellow.bold().paint("not found")
-            );
-        }
-    }
-
-    // Print the commit message
-    if verbose {
-        print_commit_message(commit_message.clone());
-    }
-
-    if confirm {
-        // User Validation
-        if Confirm::new()
-            .with_prompt("Do you want to commit with this message?")
-            .interact()
-            .unwrap()
-        {
-            commit(commit_message).expect("Error commiting the changes");
-        } else {
-            // If the user doesn't want to commit with this message
-            if Confirm::new()
-                .with_prompt("Do you want to edit the commit message?")
-                .default(true)
-                .interact()
-                .unwrap()
-            {
-                prepare_commit_msg(commit_message_file_path);
-            } else {
-                // If the user doesn't want to edit the commit message
-                utils::bye(None);
-            }
-        }
-    } else {
-        commit(commit_message).expect("Error commiting the changes");
-    }
-}
-
-///
-/// # handle_message_doesnt_exist
-/// Handles the case where the commit message file doesn't exist.
-///
-/// ## Arguments
-/// * `caller` - The folder from which the program was called
-/// * `confirm` - CLI confirmation or direct creation
-/// * `verbose` - If the program should print messages
-///
-/// ## Returns
-/// * `()` - Nothing
-fn handle_message_doesnt_exist(
-    caller: &Path,
-    confirm: bool,
-    verbose: bool,
-) {
-    if verbose {
-        // If it doesn't exist, print an error message
-        println!(
-            "{}/{} {} ❌ ",
-            caller.display(),
-            COMMIT_MESSAGE_FILE,
-            Red.bold().paint("not found")
-        );
-    }
-
-    if confirm {
-        if Confirm::new()
-            .with_prompt("Create it ?")
-            .interact()
-            .unwrap()
-        {
-            create_needed_files();
-        } else {
-            // If the user doesn't want to create the file
-            utils::bye(None);
-        }
-    } else {
-        create_needed_files();
     }
 }
 
@@ -256,16 +155,64 @@ fn handle_message_doesnt_exist(
 /// # create_needed_files
 /// Creates the needed files.
 ///
+/// ## Arguments
+/// * `verbose` - Verbose the operation
+///
 /// ## Returns
 /// * `()` - Nothing
-fn create_needed_files() {
-    // Create the file
-    std::fs::File::create(COMMIT_MESSAGE_FILE)
-        .expect("Something went wrong creating the file");
+fn create_needed_files(verbose: bool) {
+    if verbose {
+        println!("Creating the needed files...");
+    }
 
-    // Prepare the commit message
-    std::fs::File::create(COMMITIGNORE_FILE_PATH)
-        .expect("Something went wrong creating the file");
+    // Check if the COMMIT_MESSAGE_FILE exists
+    if Path::new(COMMIT_MESSAGE_FILE).exists() {
+        if verbose {
+            // Print a message
+            println!(
+                "\t`{}` {} ✅ ",
+                COMMIT_MESSAGE_FILE,
+                Green.bold().paint("already exists")
+            );
+        }
+    } else {
+        // Create the file
+        std::fs::File::create(COMMIT_MESSAGE_FILE)
+            .expect("Something went wrong creating the file");
+
+        if verbose {
+            println!(
+                "\t`{}` {} ✅ ",
+                COMMIT_MESSAGE_FILE,
+                Green.bold().paint("created")
+            );
+        }
+    }
+
+    // Same for the commitignore file
+    if Path::new(COMMITIGNORE_FILE_PATH).exists() {
+        if verbose {
+            println!(
+                "\t`{}` {} ✅ ",
+                COMMITIGNORE_FILE_PATH,
+                Green.bold().paint("already exists")
+            );
+        }
+
+        return;
+    } else {
+        // Create the file
+        std::fs::File::create(COMMITIGNORE_FILE_PATH)
+            .expect("Something went wrong creating the file");
+
+        if verbose {
+            println!(
+                "\t`{}` {} ✅ ",
+                COMMITIGNORE_FILE_PATH,
+                Green.bold().paint("created")
+            );
+        }
+    }
 }
 
 ///
@@ -288,7 +235,7 @@ fn print_commit_message(commit_message: String) {
 /// # Main function
 fn main() {
     // Read the passed arguments
-    let args = Cli::parse();
+    let cli = Cli::parse();
 
     // Folder caller - the folder from which the program was called
     let caller = std::env::current_dir().unwrap();
@@ -298,9 +245,9 @@ fn main() {
     let commit_message_file_path = Path::new(&commit_message_file_path_str);
 
     // Check if the '-v' argument is passed
-    let verbose: bool = args.verbose;
+    let verbose: bool = cli.verbose;
 
-    if args.yes {
+    if cli.commit {
         if commit_message_file_path.exists() {
             // Read the file
             let commit_message = utils::read_file(commit_message_file_path);
@@ -309,31 +256,24 @@ fn main() {
 
             // Commit the changes
             commit(commit_message).expect("Error commiting the changes");
+
+
+            if cli.push {
+                git_related::push(
+                    verbose,
+                cli.args.clone()
+                ).expect("Error pushing the changes");
+            }
+
         } else {
             // Crash the program
             panic!("{} {} ❌ ", COMMIT_MESSAGE_FILE, Red.bold().paint("not found"));
         }
-    } else if args.no {
-        // Create the needed files
-        create_needed_files();
-
-        // Prepare the commit message
-        prepare_commit_msg(commit_message_file_path);
     } else {
-        // Looks if a file named COMMIT_MESSAGE_FILE exists in the 'caller' folder
-        if commit_message_file_path.exists() {
-            handle_message_exists(
-                &caller,
-                &commit_message_file_path,
-                true,
-                verbose
-            );
-        } else {
-            handle_message_doesnt_exist(
-                &caller,
-                true,
-                verbose
-            );
+        create_needed_files(verbose);
+
+        if cli.generate {
+            prepare_commit_msg(commit_message_file_path, verbose);
         }
     }
 }

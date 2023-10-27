@@ -49,6 +49,50 @@ pub fn commit(message: String) -> Result<(), String> {
 }
 
 ///
+/// # push
+/// Pushes the changes.
+///
+/// ## Arguments
+/// * `verbose` - If the push should be verbose or not
+/// * `args` - The args to pass to the command
+///
+/// ## Returns
+/// * `Result<(), String>` - The result of the push
+pub fn push(
+    verbose: bool,
+    args: Option<Vec<String>>
+) -> Result<(), String> {
+    if verbose {
+        println!("\nPushing...");
+    }
+
+    let mut final_args: Vec<String> = vec![
+        "push".to_string(),
+    ];
+
+    final_args.extend(args.unwrap_or(vec![]));
+
+    // Command
+    let command = Command::new("git")
+        .args(final_args)
+        .output()
+        .expect("failed to execute process");
+
+    // If the command was successful
+    if command.status.success() {
+        // Print a success message
+        println!("{}", Green.bold().paint("Push successful."));
+
+        Ok(())
+    } else {
+        // Print an error message
+        println!("{}", Red.bold().paint("Push failed."));
+
+        Err("Push failed.".to_string())
+    }
+}
+
+///
 /// # get_current_branch
 /// Returns the current git branch.
 ///
@@ -86,7 +130,7 @@ pub fn get_current_branch() -> String {
 /// ## Returns
 /// * `u8` - The number of commits
 pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
-    let output = Command::new("git")
+    let output =  Command::new("git")
         .arg("rev-list")
         .arg("--count")
         .arg(branch.unwrap_or(get_current_branch().as_str()))
