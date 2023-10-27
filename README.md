@@ -9,12 +9,15 @@ When I added files to git, I use to manually make a description of what I’ve d
 [commit_nb] TL;DR Brief description
 
 - added_file_1
+
 	blabla
 
 - added_file_2
+
 	blablou
 
 ```
+(The new line after the file name is important for the markdown to work)
 
 So I made this program in order to generate this file for me from the ```git status –-porcelain``` output.
 
@@ -27,49 +30,77 @@ Si I've made the implementation of '.commitignore' file that works EXACTLY as th
 
 ## Usage
 
-commit_text.txt
+### Generate the commit file
 
-```
-[123] TL;DR Fixes
+Let's say you have added 3 files to git.
 
-- file1.tsx:
-    Blabla
-
-- file2.rs:
-    Bablou
-```
-
-```bash
-rust_binary_name [normal git commit arguments]
+``` 
+> git status 
+M src/main.rs 
+M src/commit.rs
+M src/utils.rs
 ```
 
+You can generate the commit file with the command
+
 ```
-commit_message.txt found ✅
-Commit Message:
-------------------------------------------------
-[123] TL;DR Fixes
-
-- file1.tsx:
-    Blabla
-
-- file2.rs:
-    Bablou
-------------------------------------------------
-Do you want to commit with this message? [Y/n]
->> n
-Do you want to edit the commit message? [Y/n]
->> y # or return
+> rust_binary_name -g # or --generate
 ```
 
-If the user select yes to commit, it’ll just commit with the passed argument and the message in the ‘commit_text.txt’ file.
+This will generate this file
 
-Else, the user is aked if he wants to edit the commit message. If yes is selected, the program will generate the following file.
 ```
 [commit_nb]
 
-- file_modified/added_1:
-		
-- file_modified/added_2:
-	
-...
+- src/main.rs
+
+  
+  
+- src/commit.rs
+
+  
+
+- src/utils.rs
+
+    
 ```
+(The spaces are important for the markdown to work)
+
+### Commit the changes with the commit file message
+
+```
+[28] TL;DR Brief description
+
+- src/main.rs
+
+  blabla
+
+- src/commit.rs
+    
+  blablou
+
+
+```
+(Once again, the spaces are important for the markdown to work)
+
+You can commit the changes with the following commands:
+- Simple commit
+  ```
+  > rust_binary_name -c # or --commit
+  ```
+  
+  This will commit the changes with the commit message in the commit file.
+
+- Commit and push
+  ```
+  > rust_binary_name -cp
+  ```
+  
+  This will commit the changes with the commit message in the commit file and push the changes to the remote repository.
+
+- Commit and push with a push arguments
+  ```
+  > rust_binary_name -cpa --set-upstream origin main
+  ```
+  
+  This will commit the changes with the commit message from the file, push the changes with the given arguments for push.

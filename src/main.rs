@@ -54,7 +54,7 @@ struct Cli {
     push: bool,
 
     /// Optional 'push args' argument. Only works if the 'commit' and 'push' arguments are passed.
-    #[arg(short, long)]
+    #[arg(short)]
     args: Option<Vec<String>>,
 
 
