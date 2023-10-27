@@ -252,7 +252,9 @@ fn main() {
             // Read the file
             let commit_message = utils::read_file(commit_message_file_path);
 
-            print_commit_message(commit_message.clone());
+            if verbose {
+                print_commit_message(commit_message.clone());
+            }
 
             // Commit the changes
             commit(commit_message).expect("Error commiting the changes");
