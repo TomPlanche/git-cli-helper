@@ -257,7 +257,7 @@ fn main() {
             }
 
             // Commit the changes
-            commit(commit_message).expect("Error commiting the changes");
+            commit(commit_message, verbose).expect("Error commiting the changes");
 
 
             if cli.push {

@@ -16,11 +16,17 @@ use std::process::Command;
 ///
 /// ## Arguments
 /// * `message` - The commit message
+/// * `verbose` - If the commit should be verbose or not
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the commit
-pub fn commit(message: String) -> Result<(), String> {
-    println!("\nCommiting...");
+pub fn commit(
+    message: String,
+    verbose: bool,
+) -> Result<(), String> {
+    if verbose {
+        println!("Commiting...");
+    }
 
     let final_args: Vec<&str> = vec![
         "commit",
