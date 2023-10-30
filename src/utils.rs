@@ -18,5 +18,5 @@ use std::path::Path;
 /// * `String` - The content of the file
 pub fn read_file(path: &Path) -> String {
     // Read and return the file
-    return std::fs::read_to_string(path).expect("Something went wrong reading the file");
+    std::fs::read_to_string(path).expect("Something went wrong reading the file")
 }

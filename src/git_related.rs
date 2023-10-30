@@ -76,7 +76,7 @@ pub fn push(
         "push".to_string(),
     ];
 
-    final_args.extend(args.unwrap_or(vec![]));
+    final_args.extend(args.unwrap_or_default());
 
     // Command
     let command = Command::new("git")
@@ -123,7 +123,7 @@ pub fn get_current_branch() -> String {
     let output = output.trim();
 
     // Return the current branch
-    return output.to_string();
+    output.to_string()
 }
 
 ///
@@ -134,7 +134,7 @@ pub fn get_current_branch() -> String {
 /// * `branch` - The branch to check - optional - (default: HEAD)
 ///
 /// ## Returns
-/// * `u8` - The number of commits
+/// * `u16` - The number of commits
 pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
     let output =  Command::new("git")
         .arg("rev-list")
@@ -159,7 +159,7 @@ pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
 ///
 /// ## Returns
 /// * `Vec<String>` - The modified / added files
-pub fn process_git_status(message: &String) -> Vec<String> {
+pub fn process_git_status(message: &str) -> Vec<String> {
     // Modified files are indicated by a 'M' at the beginning of the line
     // Added files are indicated by a 'A' at the beginning of the line
 
@@ -182,7 +182,7 @@ pub fn process_git_status(message: &String) -> Vec<String> {
     }
 
     // Return the vector
-    return modified_files;
+    modified_files
 }
 
 ///
@@ -193,7 +193,7 @@ pub fn process_git_status(message: &String) -> Vec<String> {
 /// * `path` - The path to the gitignore file
 pub fn process_gitignore_file(path: &Path) -> Vec<String> {
     // Read the gitignore file
-    let gitignore_file = &read_file(&path);
+    let gitignore_file = &read_file(path);
 
     // The gitignore file stores the files and folders to ignore
     // Each line is a file or folder to ignore
@@ -214,7 +214,7 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
         }
     }
 
-    return files_to_ignore;
+    files_to_ignore
 }
 
 ///

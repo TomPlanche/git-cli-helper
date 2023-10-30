@@ -57,7 +57,6 @@ struct Cli {
     #[arg(short)]
     args: Option<Vec<String>>,
 
-
     /// Optional 'generate' argument.
     /// Directly generate the `commit_message.md` file.
     #[arg(short, long)]
@@ -123,7 +122,7 @@ fn prepare_commit_msg(
         // If the file is not a file in the commitignore file
         // or is not in a folder in the commitignore file
         if comitignore_path.exists() {
-            let commitignore_items: Vec<String> = git_related::process_gitignore_file(&path);
+            let commitignore_items: Vec<String> = git_related::process_gitignore_file(path);
 
             if commitignore_items.contains(&file)
                 && commitignore_items.contains(&format!("{}/", file))
@@ -198,8 +197,6 @@ fn create_needed_files(verbose: bool) {
                 Green.bold().paint("already exists")
             );
         }
-
-        return;
     } else {
         // Create the file
         std::fs::File::create(COMMITIGNORE_FILE_PATH)
