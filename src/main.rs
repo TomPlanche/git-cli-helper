@@ -155,6 +155,11 @@ fn prepare_commit_msg(
                 }
             }
 
+            if need_to_skip {
+                // Skip the current file so the file is not added to the commit message
+                continue;
+            }
+
             for item in gitignore_items {
                 if check_for_file_in_folder(Path::new(&file), Path::new(&item)) {
                     need_to_skip = true;
