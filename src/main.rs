@@ -26,6 +26,7 @@ use std::path::Path;
 use ansi_term::Colour::{Green, Red};
 use clap::{Parser};
 use git_related::commit;
+use crate::utils::check_for_file_in_folder;
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
@@ -90,6 +91,7 @@ fn prepare_commit_msg(
     let folder_path = path.parent().unwrap();
 
     // Get the path to the commit message file
+    let gitignore_path = folder_path.join(".gitignore");
     let comitignore_path = folder_path.join(COMMITIGNORE_FILE_PATH);
 
     // If the COMMIT_MESSAGE_FILE exists
@@ -122,11 +124,45 @@ fn prepare_commit_msg(
         // If the file is not a file in the commitignore file
         // or is not in a folder in the commitignore file
         if comitignore_path.exists() {
-            let commitignore_items: Vec<String> = git_related::process_gitignore_file(path);
+            let commitignore_items: Vec<String> = git_related::process_gitignore_file(&comitignore_path);
+            let gitignore_items: Vec<String> = git_related::process_commitignore_file(&gitignore_path);
 
-            if commitignore_items.contains(&file)
-                && commitignore_items.contains(&format!("{}/", file))
+            // Check if the file/folder is in the commitignore file or gitignore file
+            if
+                commitignore_items.contains(&file)
+                || gitignore_items.contains(&file)
             {
+                // continue means skip the current iteration
+                continue;
+            }
+
+            // This variable is used to call the 'continue' statement
+            // just before the 'writeln!' macro.
+            // I can't use the 'continue' statement directly in the for loop
+            // because it will skip the next item, not file.
+            let mut need_to_skip = false;
+
+
+            // for each item in the commitignore file and gitignore file,
+            // check for file in the folder
+            // for example:
+            // `data/year_2015/puzzles/` in the commitignore file can
+            // exclude `data/year_2015/puzzles/day_01.md` from the commit
+            // and in general `data/year_2015/puzzles/*` from the commit
+            for item in commitignore_items {
+                if check_for_file_in_folder(Path::new(&file), Path::new(&item)) {
+                    need_to_skip = true;
+                }
+            }
+
+            for item in gitignore_items {
+                if check_for_file_in_folder(Path::new(&file), Path::new(&item)) {
+                    need_to_skip = true;
+                }
+            }
+
+            if need_to_skip {
+                // Skip the current file so the file is not added to the commit message
                 continue;
             }
         }

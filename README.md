@@ -104,3 +104,8 @@ You can commit the changes with the following commands:
   ```
   
   This will commit the changes with the commit message from the file, push the changes with the given arguments for push.
+
+## `.commitignore` file.
+
+This files works exactly as the `.gitignore` file.
+If you want to ignore a file from the commit file, just add it to the `.commitignore` file. Works for directories too :)

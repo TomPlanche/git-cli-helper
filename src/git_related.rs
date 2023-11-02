@@ -217,6 +217,43 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
     files_to_ignore
 }
 
+
+///
+/// # process_commitignore_file
+/// Processes the commitignore file.
+/// It will parse the commitignore file in order to prepare the git commit message.
+///
+/// ## Arguments
+/// * `path` - The path to the commitignore file
+///
+/// ## Returns
+/// * `Vec<String>` - The files and folders to ignore
+pub fn process_commitignore_file(path: &Path) -> Vec<String> {
+    // Read the commitignore file
+    let commitignore_file = &read_file(path);
+
+    // The commitignore file stores the files and folders to ignore
+    // Each line is a file or folder to ignore
+    // The '#' character is used to comment a line
+
+    // Regex to match the files and folders to ignore
+    let regex_rule = regex::Regex::new(r"^[^#](.*)$").unwrap();
+
+    // Create a vector to store the files and folders to ignore while parsing the commitignore file
+    let mut files_to_ignore: Vec<String> = Vec::new();
+
+    // For each line in the commitignore file
+    for line in commitignore_file.lines() {
+        // If the line matches the regex
+        if regex_rule.is_match(line) {
+            // Add the file or folder name to the vector
+            files_to_ignore.push(line.to_string());
+        }
+    }
+
+    files_to_ignore
+}
+
 ///
 /// # read_git_status
 /// Reads the git status.
