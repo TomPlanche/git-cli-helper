@@ -32,7 +32,17 @@ pub fn check_for_file_in_folder(file_path: &Path, folder_path: &Path) -> bool {
     // Get the location of the file passed by 'path'
     // ex: path = /home/user/project/src/main.rs
     // get the location of the file: /home/user/project/src/
-    let file_folder_path = file_path.parent().unwrap();
+    let mut file_folder_path = file_path.parent().unwrap();
+
+    loop {
+        // If the file is in the folder
+        if file_folder_path == folder_path {
+            return true;
+        }
+
+        // move back one folder
+        file_folder_path = file_folder_path.parent().unwrap();
+    }
 
     // If the file is in the folder
     return file_folder_path == folder_path
@@ -55,9 +65,21 @@ pub fn read_file(path: &Path) -> String {
 
 // Tests ==================================================================================== Tests
 #[test]
-fn test_check_for_file_in_folder() {
+fn test_check_for_file_in_folder_direct() {
     // Path for the folder
     let folder_path = Path::new("data/year_2015/puzzles/");
+    let file_path = Path::new("data/year_2015/puzzles/day_01.md");
+
+    let result = check_for_file_in_folder(file_path, folder_path);
+
+    // Assert the result
+    assert_eq!(result, true);
+}
+
+#[test]
+fn test_check_for_file_in_folder_indirect() {
+    // Path for the folder
+    let folder_path = Path::new("data/");
     let file_path = Path::new("data/year_2015/puzzles/day_01.md");
 
     let result = check_for_file_in_folder(file_path, folder_path);
