@@ -290,10 +290,10 @@ fn main() {
             }
 
             // Commit the changes
-            commit(commit_message, verbose).expect("Error commiting the changes");
+            let succesfull_commit = commit(commit_message, verbose).expect("Error commiting the changes");
 
 
-            if cli.push {
+            if cli.push && succesfull_commit {
                 git_related::push(
                     verbose,
                 cli.args.clone()

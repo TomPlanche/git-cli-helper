@@ -23,7 +23,7 @@ use std::process::Command;
 pub fn commit(
     message: String,
     verbose: bool,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     if verbose {
         println!("Commiting...");
     }
@@ -45,7 +45,7 @@ pub fn commit(
         // Print a success message
         println!("{}", Green.bold().paint("Commit successful."));
 
-        Ok(())
+        Ok(true)
     } else {
         // Print an error message
         println!("{}", Red.bold().paint("Commit failed."));
