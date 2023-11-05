@@ -109,3 +109,21 @@ You can commit the changes with the following commands:
 
 This files works exactly as the `.gitignore` file.
 If you want to ignore a file from the commit file, just add it to the `.commitignore` file. Works for directories too :)
+
+## Installation
+To install this program, follow these steps:
+- Clone the repository
+- Go to the repository folder
+- Run the following command
+  ```
+  > cargo build --release
+  ```
+- Alias the binary to a command of your choice in your shell config file
+  - For example, in my `.config/fish/config.fish` file I have this line
+    ```
+    alias commit="my_path_to_my_repo/target/release/git_commit_with_rust"
+    ```
+  - You can also add the binary to your path
+    ```
+    > export PATH=$PATH:~/Documents/Programming/Rust/git_commit_with_rust/target/release
+    ```
