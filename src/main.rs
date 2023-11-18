@@ -2,14 +2,9 @@
 /// Main file for the project.
 ///
 /// ## Arguments
-/// * `-g` | `--generate` - Used for directly generating the `commit_message.md` file.
-/// * `-c` | `--commit` - Used for directly commiting the changes.
-///     + -p | --push - Used for directly pushing the changes.
-///     + [git push args] - The args that will be passed to `git push` if the `-p` argument is passed.
-/// * `-v` | `--verbose` - Used for verbose the operation.
+/// * commit - Commit the changes
+/// * push - Push the changes
 ///
-///
-/// * `-h` | `--help` - Used for printing the help message.
 ///
 ///
 /// Read the [README.md](../README.md) for more information.
@@ -24,7 +19,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use ansi_term::Colour::{Green, Red};
-use clap::{Parser};
+use clap::{Parser, Subcommand};
 use git_related::commit;
 use crate::utils::check_for_file_in_folder;
 
@@ -44,30 +39,47 @@ const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 #[command(help_template = "{about}\nMade by: {author}\n\nUSAGE:\n{usage}\n\n{all-args}\n")]
 #[command(name = "custom-git-commit")]
 struct Cli {
-    /// Optional 'commit' argument.
-    /// Directly commit the file with the text in `commit_message.md'.
-    #[arg(short, long)]
-    commit: bool,
+    /// Commands
+    #[command(subcommand)]
+    command: Commands,
 
-    // If the '-p' argument is passed
-    /// Optional 'push' argument. Only works if the 'commit' argument is passed.
-    #[arg(short, long)]
-    push: bool,
-
-    /// Optional 'push args' argument. Only works if the 'commit' and 'push' arguments are passed.
-    #[arg(short)]
-    args: Option<Vec<String>>,
-
-    /// Optional 'generate' argument.
-    /// Directly generate the `commit_message.md` file.
-    #[arg(short, long)]
-    generate: bool,
-
-    /// Verbose the operation.
+    /// Verbose
+    /// Optional 'verbose' argument. Only works if a subcommand is passed.
+    /// If passed, it will print more information about the operation.
     #[arg(short, long)]
     verbose: bool,
 }
 
+#[derive(Subcommand)]
+#[command(about = "Creates all the folders needed for the Advent of Code challenges of the given year.")]
+enum Commands {
+    /// Commit subcommand
+    /// Directly commit the file with the text in `commit_message.md'.
+    #[command(short_flag = 'c')]
+    Commit {
+        /// Optional 'push' argument. Only works if the 'commit' argument is passed.
+        #[arg(short, long)]
+        push: bool,
+
+        /// Optional 'push args' argument. Only works if the 'commit' and 'push' arguments are passed.
+        #[arg(short)]
+        args: Option<Vec<String>>,
+    },
+
+    /// Generate subcommand
+    /// Directly generate the `commit_message.md` file.
+    #[command(short_flag = 'g')]
+    Generate,
+
+    /// Push subcommand
+    /// Push the changes
+    #[command(short_flag = 'p')]
+    Push {
+        /// Optional 'push args' argument. Only works if the 'commit' and 'push' arguments are passed.
+        #[arg(short)]
+        args: Option<Vec<String>>,
+    },
+}
 // Function(s) =========================================================================== Functions
 ///
 /// # prepare_commit_msg
@@ -282,38 +294,47 @@ fn main() {
     let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
     let commit_message_file_path = Path::new(&commit_message_file_path_str);
 
-    // Check if the '-v' argument is passed
-    let verbose: bool = cli.verbose;
+    let verbose = cli.verbose;
 
-    if cli.commit {
-        if commit_message_file_path.exists() {
-            // Read the file
-            let commit_message = utils::read_file(commit_message_file_path);
+    match &cli.command {
+        Commands::Commit { push, args } => {
+            if commit_message_file_path.exists() {
+                // Read the file
+                let commit_message = utils::read_file(commit_message_file_path);
 
-            if verbose {
-                print_commit_message(commit_message.clone());
+                if verbose {
+                    print_commit_message(commit_message.clone());
+                }
+
+                // Commit the changes
+                let succesfull_commit = commit(commit_message, verbose).expect("Error commiting the changes");
+
+
+                if *push && succesfull_commit {
+                    git_related::push(
+                        verbose,
+                        args.clone()
+                    ).expect("Error pushing the changes");
+                }
+
+            } else {
+                // Crash the program
+                panic!("{} {} ❌ ", COMMIT_MESSAGE_FILE, Red.bold().paint("not found."));
             }
-
-            // Commit the changes
-            let succesfull_commit = commit(commit_message, verbose).expect("Error commiting the changes");
-
-
-            if cli.push && succesfull_commit {
-                git_related::push(
-                    verbose,
-                cli.args.clone()
-                ).expect("Error pushing the changes");
-            }
-
-        } else {
-            // Crash the program
-            panic!("{} {} ❌ ", COMMIT_MESSAGE_FILE, Red.bold().paint("not found"));
         }
-    } else {
-        create_needed_files(verbose);
 
-        if cli.generate {
+        Commands::Generate => {
+            create_needed_files(verbose);
+
             prepare_commit_msg(commit_message_file_path, verbose);
+
+        }
+
+        Commands::Push { args } => {
+            git_related::push(
+                verbose,
+                args.clone()
+            ).expect("Error pushing the changes");
         }
     }
 }

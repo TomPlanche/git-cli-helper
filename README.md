@@ -24,12 +24,22 @@ So I made this program in order to generate this file for me from the ```git sta
 ## Problems
 
 If I’ve added a file that is not needed in the commit file, I have to remove it every time.
-Si I've made the implementation of '.commitignore' file that works EXACTLY as the '.gitignore' file.
+So I've made the implementation of '.commitignore' file that works EXACTLY as the '.gitignore' file.
 
 
 
 ## Usage
+```bash
+> rust_binary_name [OPTIONS] <COMMAND>
+```
 
+Where the only available option is ```-v``` or ```--verbose``` to get more information about what the program is doing.
+
+Where the available commands are:
+- ```-g``` or ```--generate``` to generate the commit file.
+- ```-c``` or ```--commit``` to commit the changes with the commit message in the commit file.
+- ```-p``` or ```--push``` to push the changes to the remote repository.
+- ```-cp``` or ```--commit-push``` to commit the changes with the commit message in the commit file and then push the changes to the remote repository.
 ### Generate the commit file
 
 Let's say you have added 3 files to git.
