@@ -10,6 +10,44 @@ use std::path::Path;
 use std::process::Command;
 
 // Functions  ===========================================================================  Functions
+/// # add_with_exclude
+/// Adds the files to the git index.
+/// It will exclude the files and folders passed in the 'exclude' argument.
+///
+/// ## Arguments
+/// * `exclude` - The files and folders to exclude
+/// * `verbose` - If the add should be verbose or not
+pub fn add_with_exclude(
+    exclude: &Vec<String>,
+    verbose: bool,
+) -> Result<bool, String> {
+    if verbose {
+        println!("Adding files...");
+    }
+
+    let _ = Command::new("git")
+        .arg("add")
+        .arg("--all")
+        .output()
+        .expect("failed to execute process");
+
+    for document in exclude {
+        // check if the document exists
+        if Path::new(&document).exists() {
+            // rm command
+            let _ = Command::new("git")
+                .arg("rm")
+                .arg("-r")
+                .arg("--cached")
+                .arg(document)
+                .output()
+                .expect("failed to execute process");
+        }
+    }
+
+    Ok(true)
+}
+
 ///
 /// # commit
 /// Commits the changes.
@@ -59,14 +97,14 @@ pub fn commit(
 /// Pushes the changes.
 ///
 /// ## Arguments
-/// * `verbose` - If the push should be verbose or not
 /// * `args` - The args to pass to the command
+/// * `verbose` - If the push should be verbose or not
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the push
 pub fn push(
+    args: Option<Vec<String>>,
     verbose: bool,
-    args: Option<Vec<String>>
 ) -> Result<(), String> {
     if verbose {
         println!("\nPushing...");
@@ -325,4 +363,14 @@ fn test_reegex_process_git_status() {
             "src/pae.rs",
         ]
     );
+}
+
+#[test]
+fn test_add_with_exclude() {
+    let exclude: Vec<String> = vec![
+        "README.md".to_string(),
+        "src/git_related.rs".to_string(),
+    ];
+
+    assert_eq!(add_with_exclude(exclude, true).unwrap(), true);
 }

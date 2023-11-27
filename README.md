@@ -40,6 +40,7 @@ Where the available commands are:
 - ```-c``` or ```--commit``` to commit the changes with the commit message in the commit file.
 - ```-p``` or ```--push``` to push the changes to the remote repository.
 - ```-cp``` or ```--commit-push``` to commit the changes with the commit message in the commit file and then push the changes to the remote repository.
+
 ### Generate the commit file
 
 Let's say you have added 3 files to git.
@@ -114,6 +115,14 @@ You can commit the changes with the following commands:
   ```
   
   This will commit the changes with the commit message from the file, push the changes with the given arguments for push.
+
+### Added all files with exceptions
+
+You can add all files to the commit with specific exceptions with the following command:
+```
+> rust_binary_name -ae ./README.md ./src/main.rs
+```
+
 
 ## `.commitignore` file.
 

@@ -21,6 +21,7 @@ use std::path::Path;
 use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use git_related::commit;
+use crate::git_related::add_with_exclude;
 use crate::utils::check_for_file_in_folder;
 
 // Constants  ===========================================================================  Constants
@@ -79,6 +80,15 @@ enum Commands {
         #[arg(short)]
         args: Option<Vec<String>>,
     },
+
+    /// Add and exclude subcommand
+    /// Add all files to the git add command and exclude the files passed by the 'exclude' argument.
+    #[command(short_flag = 'a')]
+    AddAndExclude {
+        /// Files to exclude from the git add command
+        #[arg(short, long)]
+        exclude: Vec<String>,
+    }
 }
 // Function(s) =========================================================================== Functions
 ///
@@ -297,6 +307,18 @@ fn main() {
     let verbose = cli.verbose;
 
     match &cli.command {
+        Commands::AddAndExclude { exclude } => {
+            println!("{:?}", exclude);
+
+            let successful_add = add_with_exclude(exclude, verbose)
+                .expect("Error adding the files");
+
+            if successful_add {
+                println!("{} ✅ ", Green.bold().paint("Added the files"));
+            } else {
+                println!("{} ❌ ", Red.bold().paint("Error adding the files"));
+            }
+        }
         Commands::Commit { push, args } => {
             if commit_message_file_path.exists() {
                 // Read the file
@@ -311,10 +333,7 @@ fn main() {
 
 
                 if *push && succesfull_commit {
-                    git_related::push(
-                        verbose,
-                        args.clone()
-                    ).expect("Error pushing the changes");
+                    git_related::push(args.clone(), verbose.clone()).expect("Error pushing the changes");
                 }
 
             } else {
@@ -327,13 +346,12 @@ fn main() {
             create_needed_files(verbose);
 
             prepare_commit_msg(commit_message_file_path, verbose);
-
         }
 
         Commands::Push { args } => {
             git_related::push(
+                args.clone(),
                 verbose,
-                args.clone()
             ).expect("Error pushing the changes");
         }
     }
