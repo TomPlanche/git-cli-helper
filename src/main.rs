@@ -18,18 +18,17 @@ mod git_related;
 use std::io::prelude::*;
 use std::path::Path;
 
+use crate::git_related::add_with_exclude;
+use crate::utils::check_for_file_in_folder;
 use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use git_related::commit;
-use crate::git_related::add_with_exclude;
-use crate::utils::check_for_file_in_folder;
 
 // Constants  ===========================================================================  Constants
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
 const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 
 // Args commands
-
 
 // Cli parser
 #[derive(Parser)]
@@ -52,7 +51,9 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
-#[command(about = "Creates all the folders needed for the Advent of Code challenges of the given year.")]
+#[command(
+    about = "Creates all the folders needed for the Advent of Code challenges of the given year."
+)]
 enum Commands {
     /// Commit subcommand
     /// Directly commit the file with the text in `commit_message.md'.
@@ -88,7 +89,7 @@ enum Commands {
         /// Files to exclude from the git add command
         #[arg(short, long)]
         exclude: Vec<String>,
-    }
+    },
 }
 // Function(s) =========================================================================== Functions
 ///
@@ -103,10 +104,7 @@ enum Commands {
 ///
 /// ## Returns
 /// * `()` - Nothing
-fn prepare_commit_msg(
-    path: &Path,
-    verbose: bool,
-) {
+fn prepare_commit_msg(path: &Path, verbose: bool) {
     // Get the location of the file passed by 'path'
     // ex: path = /home/user/project/src/main.rs
     // get the location of the file: /home/user/project/src/
@@ -126,8 +124,9 @@ fn prepare_commit_msg(
     }
 
     // Read the git status
-    let modified_files: Vec<String> =
-        git_related::process_git_status(&git_related::read_git_status());
+    let git_status: &str = &git_related::read_git_status();
+    let modified_files: Vec<String> = git_related::process_git_status(git_status);
+    let deleted_files: Vec<String> = git_related::process_deteted_files(git_status);
 
     // The commit message file
     let mut commit_file = std::fs::OpenOptions::new()
@@ -146,14 +145,13 @@ fn prepare_commit_msg(
         // If the file is not a file in the commitignore file
         // or is not in a folder in the commitignore file
         if comitignore_path.exists() {
-            let commitignore_items: Vec<String> = git_related::process_gitignore_file(&comitignore_path);
-            let gitignore_items: Vec<String> = git_related::process_commitignore_file(&gitignore_path);
+            let commitignore_items: Vec<String> =
+                git_related::process_gitignore_file(&comitignore_path);
+            let gitignore_items: Vec<String> =
+                git_related::process_commitignore_file(&gitignore_path);
 
             // Check if the file/folder is in the commitignore file or gitignore file
-            if
-                commitignore_items.contains(&file)
-                || gitignore_items.contains(&file)
-            {
+            if commitignore_items.contains(&file) || gitignore_items.contains(&file) {
                 // continue means skip the current iteration
                 continue;
             }
@@ -163,7 +161,6 @@ fn prepare_commit_msg(
             // I can't use the 'continue' statement directly in the for loop
             // because it will skip the next item, not file.
             let mut need_to_skip = false;
-
 
             // for each item in the commitignore file and gitignore file,
             // check for file in the folder
@@ -195,6 +192,13 @@ fn prepare_commit_msg(
         }
 
         if let Err(e) = writeln!(commit_file, "- `{}`:\n\n\t\n", file) {
+            eprintln!("Couldn't write to file: {}", e);
+        }
+    }
+
+    // For each deleted file
+    for file in deleted_files {
+        if let Err(e) = writeln!(commit_file, "- `{}`: deleted\n", file) {
             eprintln!("Couldn't write to file: {}", e);
         }
     }
@@ -239,8 +243,7 @@ fn create_needed_files(verbose: bool) {
         }
     } else {
         // Create the file
-        std::fs::File::create(COMMIT_MESSAGE_FILE)
-            .expect("Something went wrong creating the file");
+        std::fs::File::create(COMMIT_MESSAGE_FILE).expect("Something went wrong creating the file");
 
         if verbose {
             println!(
@@ -300,7 +303,6 @@ fn main() {
     // Folder caller - the folder from which the program was called
     let caller = std::env::current_dir().unwrap();
 
-
     let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
     let commit_message_file_path = Path::new(&commit_message_file_path_str);
 
@@ -310,8 +312,8 @@ fn main() {
         Commands::AddAndExclude { exclude } => {
             println!("{:?}", exclude);
 
-            let successful_add = add_with_exclude(exclude, verbose)
-                .expect("Error adding the files");
+            let successful_add =
+                add_with_exclude(exclude, verbose).expect("Error adding the files");
 
             if successful_add {
                 println!("{} ✅ ", Green.bold().paint("Added the files"));
@@ -329,16 +331,20 @@ fn main() {
                 }
 
                 // Commit the changes
-                let succesfull_commit = commit(commit_message, verbose).expect("Error commiting the changes");
-
+                let succesfull_commit =
+                    commit(commit_message, verbose).expect("Error commiting the changes");
 
                 if *push && succesfull_commit {
-                    git_related::push(args.clone(), verbose.clone()).expect("Error pushing the changes");
+                    git_related::push(args.clone(), verbose.clone())
+                        .expect("Error pushing the changes");
                 }
-
             } else {
                 // Crash the program
-                panic!("{} {} ❌ ", COMMIT_MESSAGE_FILE, Red.bold().paint("not found."));
+                panic!(
+                    "{} {} ❌ ",
+                    COMMIT_MESSAGE_FILE,
+                    Red.bold().paint("not found.")
+                );
             }
         }
 
@@ -349,10 +355,7 @@ fn main() {
         }
 
         Commands::Push { args } => {
-            git_related::push(
-                args.clone(),
-                verbose,
-            ).expect("Error pushing the changes");
+            git_related::push(args.clone(), verbose).expect("Error pushing the changes");
         }
     }
 }

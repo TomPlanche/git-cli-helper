@@ -1,11 +1,10 @@
 ///
 /// # git_related
 /// Contains functions related to git.
-
 // Imports ================================================================================= Imports
 use crate::utils::read_file;
 
-use ansi_term::Colour::{Red, Green};
+use ansi_term::Colour::{Green, Red};
 use std::path::Path;
 use std::process::Command;
 
@@ -17,10 +16,7 @@ use std::process::Command;
 /// ## Arguments
 /// * `exclude` - The files and folders to exclude
 /// * `verbose` - If the add should be verbose or not
-pub fn add_with_exclude(
-    exclude: &Vec<String>,
-    verbose: bool,
-) -> Result<bool, String> {
+pub fn add_with_exclude(exclude: &Vec<String>, verbose: bool) -> Result<bool, String> {
     if verbose {
         println!("Adding files...");
     }
@@ -58,19 +54,12 @@ pub fn add_with_exclude(
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the commit
-pub fn commit(
-    message: String,
-    verbose: bool,
-) -> Result<bool, String> {
+pub fn commit(message: String, verbose: bool) -> Result<bool, String> {
     if verbose {
         println!("Commiting...");
     }
 
-    let final_args: Vec<&str> = vec![
-        "commit",
-        "-m",
-        message.as_str(),
-    ];
+    let final_args: Vec<&str> = vec!["commit", "-m", message.as_str()];
 
     // Command
     let command = Command::new("git")
@@ -102,17 +91,12 @@ pub fn commit(
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the push
-pub fn push(
-    args: Option<Vec<String>>,
-    verbose: bool,
-) -> Result<(), String> {
+pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
     if verbose {
         println!("\nPushing...");
     }
 
-    let mut final_args: Vec<String> = vec![
-        "push".to_string(),
-    ];
+    let mut final_args: Vec<String> = vec!["push".to_string()];
 
     final_args.extend(args.unwrap_or_default());
 
@@ -174,7 +158,7 @@ pub fn get_current_branch() -> String {
 /// ## Returns
 /// * `u16` - The number of commits
 pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
-    let output =  Command::new("git")
+    let output = Command::new("git")
         .arg("rev-list")
         .arg("--count")
         .arg(branch.unwrap_or(get_current_branch().as_str()))
@@ -224,6 +208,40 @@ pub fn process_git_status(message: &str) -> Vec<String> {
 }
 
 ///
+/// # process_deleted_files
+/// Processes the deleted files.
+///
+/// ## Arguments
+/// * `message` - The git status
+///
+/// ## Returns
+/// * `Vec<String>` - The deleted files
+pub fn process_deteted_files(message: &str) -> Vec<String> {
+    // Deleted files are indicated by a 'D' at the beginning of the line
+
+    // Regex to match the deleted files
+    let regex_rule = regex::Regex::new(r"^[D ][A-Z\?\! ]\s(.*)$").unwrap();
+
+    // Create a vector to store the deleted files while parsing the git status message
+    let mut deleted_files: Vec<String> = Vec::new();
+
+    // For each line in the git status message
+    for line in message.lines() {
+        // If the line matches the regex
+        if regex_rule.is_match(line) {
+            // Get the file name
+            let file_name = regex_rule.captures(line).unwrap().get(1).unwrap().as_str();
+
+            // Add the file name to the vector
+            deleted_files.push(file_name.to_string());
+        }
+    }
+
+    // Return the vector
+    deleted_files
+}
+
+///
 /// # process_gitignore_file
 /// Processes the gitignore file.
 ///
@@ -254,7 +272,6 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
 
     files_to_ignore
 }
-
 
 ///
 /// # process_commitignore_file
@@ -321,56 +338,68 @@ pub fn read_git_status() -> String {
 }
 
 // Tests ==================================================================================== Tests
-#[test]
-fn test_get_current_branch() {
-    assert_eq!(get_current_branch(), "master");
-}
+#[cfg(test)]
+mod tests {
+    use super::{add_with_exclude, get_current_branch, process_deteted_files, process_git_status};
 
-#[test]
-fn test_reegex_process_git_status() {
-    let lines: Vec<&str> = vec![
-        " M src/git_related.rs",
-        "M  src/main.rs",
-        "AM src/utils.rs",
-        "?? src/README.md",
-        "UU src/bla.rs",
-        "!! src/bli.rs",
-        "DD src/blo.rs",
-        "R  src/blu.rs",
-        "C  src/bly.rs",
-        "U  src/pae.rs",
-    ];
-
-    let regex_rule = regex::Regex::new(r"^[MTARCU][A-Z\?\! ]\s(.*)$").unwrap();
-
-    let mut modified_files: Vec<String> = Vec::new();
-
-    for line in lines {
-        if regex_rule.is_match(line) {
-            let file_name = regex_rule.captures(line).unwrap().get(1).unwrap().as_str();
-            modified_files.push(file_name.to_string());
-        }
+    #[test]
+    fn test_get_current_branch() {
+        assert_eq!(get_current_branch(), "master");
     }
 
-    assert_eq!(
-        modified_files,
-        vec![
-            "src/main.rs",
-            "src/utils.rs",
-            "src/bla.rs",
-            "src/blu.rs",
-            "src/bly.rs",
-            "src/pae.rs",
-        ]
-    );
-}
+    #[test]
+    fn test_regex_process_git_status() {
+        let lines: Vec<&str> = vec![
+            " M src/git_related.rs",
+            "M  src/main.rs",
+            "AM src/utils.rs",
+            "?? src/README.md",
+            "UU src/bla.rs",
+            "!! src/bli.rs",
+            "DD src/blo.rs",
+            "R  src/blu.rs",
+            "C  src/bly.rs",
+            "U  src/pae.rs",
+        ];
 
-#[test]
-fn test_add_with_exclude() {
-    let exclude: Vec<String> = vec![
-        "README.md".to_string(),
-        "src/git_related.rs".to_string(),
-    ];
+        let modified_files = process_git_status(lines.join("\n").as_str());
 
-    assert_eq!(add_with_exclude(exclude, true).unwrap(), true);
+        assert_eq!(
+            modified_files,
+            vec![
+                "src/main.rs",
+                "src/utils.rs",
+                "src/bla.rs",
+                "src/blu.rs",
+                "src/bly.rs",
+                "src/pae.rs",
+            ]
+        );
+    }
+
+    #[test]
+    fn test_regex_process_deteted_files() {
+        let lines: Vec<&str> = vec![
+            " D src/git_related.rs",
+            "D  src/main.rs",
+            "AD src/utils.rs",
+            "?? src/README.md",
+            "UU src/bla.rs",
+            "!! src/bli.rs",
+            "DD src/blo.rs",
+            "R  src/blu.rs",
+            "C  src/bly.rs",
+            "U  src/pae.rs",
+        ];
+        let deleted_files = process_deteted_files(lines.join("\n").as_str());
+
+        assert_eq!(deleted_files, vec!["src/main.rs", "src/blo.rs",]);
+    }
+
+    #[test]
+    fn test_add_with_exclude() {
+        let exclude: Vec<String> = vec!["README.md".to_string(), "src/git_related.rs".to_string()];
+
+        assert_eq!(add_with_exclude(&exclude, true).unwrap(), true);
+    }
 }
