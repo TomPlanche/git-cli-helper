@@ -220,7 +220,8 @@ pub fn process_deteted_files(message: &str) -> Vec<String> {
     // Deleted files are indicated by a 'D' at the beginning of the line
 
     // Regex to match the deleted files
-    let regex_rule = regex::Regex::new(r"^[D ][A-Z\?\! ]\s(.*)$").unwrap();
+    let regex_rule =
+        regex::Regex::new(r"^(?:(?:D+)|(?:\sD)|(?:[A-Z]D))\s{1,}([A-Za-z0-9\/_\.]*)$").unwrap();
 
     // Create a vector to store the deleted files while parsing the git status message
     let mut deleted_files: Vec<String> = Vec::new();
