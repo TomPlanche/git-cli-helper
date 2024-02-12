@@ -325,7 +325,7 @@ pub fn read_git_status() -> String {
         .expect("failed to execute process");
 
     // If the command was successful
-    return if command.status.success() {
+    if command.status.success() {
         // Convert the output to a string
         let output = String::from_utf8_lossy(&command.stdout);
 
@@ -335,7 +335,7 @@ pub fn read_git_status() -> String {
         println!("{}", Red.bold().paint("Failed to read git status."));
 
         String::from("")
-    };
+    }
 }
 
 // Tests ==================================================================================== Tests
