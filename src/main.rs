@@ -145,13 +145,12 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
         // If the file is not a file in the commitignore file
         // or is not in a folder in the commitignore file
         if comitignore_path.exists() {
-            let commitignore_items: Vec<String> =
-                git_related::process_gitignore_file(&comitignore_path);
-            let gitignore_items: Vec<String> =
-                git_related::process_commitignore_file(&gitignore_path);
+            let mut items_to_ignore: Vec<String> =
+                git_related::process_gitignore_file(&gitignore_path);
+            items_to_ignore.append(&mut git_related::process_gitignore_file(&comitignore_path));
 
             // Check if the file/folder is in the commitignore file or gitignore file
-            if commitignore_items.contains(&file) || gitignore_items.contains(&file) {
+            if items_to_ignore.contains(&file) {
                 // continue means skip the current iteration
                 continue;
             }
@@ -168,7 +167,7 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
             // `data/year_2015/puzzles/` in the commitignore file can
             // exclude `data/year_2015/puzzles/day_01.md` from the commit
             // and in general `data/year_2015/puzzles/*` from the commit
-            for item in commitignore_items {
+            for item in items_to_ignore {
                 if check_for_file_in_folder(Path::new(&file), Path::new(&item)) {
                     need_to_skip = true;
                 }
@@ -177,12 +176,6 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
             if need_to_skip {
                 // Skip the current file so the file is not added to the commit message
                 continue;
-            }
-
-            for item in gitignore_items {
-                if check_for_file_in_folder(Path::new(&file), Path::new(&item)) {
-                    need_to_skip = true;
-                }
             }
 
             if need_to_skip {

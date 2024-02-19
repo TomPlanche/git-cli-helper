@@ -4,6 +4,7 @@
 ///
 // Imports ================================================================================= Imports
 use std::path::Path;
+
 // Functions  ===========================================================================  Functions
 ///
 /// # check_for_file_in_folder
@@ -24,6 +25,7 @@ use std::path::Path;
 ///
 /// // Assert the result
 /// assert_eq!(result, true);
+/// ```
 ///
 /// ## Returns
 /// * `bool` - If the file is in the folder or not
@@ -70,28 +72,27 @@ mod tests {
 
     #[test]
     fn test_check_for_file_in_folder_direct() {
-        let folder_path = Path::new("data/year_2015/puzzles/");
         let file_path = Path::new("data/year_2015/puzzles/day_01.md");
 
-        let result = check_for_file_in_folder(file_path, folder_path);
-
-        // Assert the result
-        assert_eq!(result, true);
-    }
-
-    #[test]
-    fn test_check_for_file_in_folder_indirect() {
-        // Path for the folder
-        let file_path = Path::new("data/year_2015/puzzles/day_01.md");
-        let folder_path_1 = Path::new("data/year_2015");
-        let folder_path_2 = Path::new("data/year_2015/puzzles/");
-        let folder_path_3 = Path::new("data/");
-        let folder_path_4 = Path::new("pipi/");
-
-        // Assert the result
-        assert_eq!(check_for_file_in_folder(file_path, folder_path_1), true);
-        assert_eq!(check_for_file_in_folder(file_path, folder_path_2), true);
-        assert_eq!(check_for_file_in_folder(file_path, folder_path_3), true);
-        assert_eq!(check_for_file_in_folder(file_path, folder_path_4), false);
+        assert_eq!(
+            check_for_file_in_folder(file_path, Path::new("data/year_2015/puzzles/")),
+            true
+        );
+        assert_eq!(
+            check_for_file_in_folder(file_path, Path::new("data/year_2015")),
+            true
+        );
+        assert_eq!(
+            check_for_file_in_folder(file_path, Path::new("data/year_2015/puzzles/")),
+            true
+        );
+        assert_eq!(
+            check_for_file_in_folder(file_path, Path::new("data/")),
+            true
+        );
+        assert_eq!(
+            check_for_file_in_folder(file_path, Path::new("pipi/")),
+            false
+        );
     }
 }
