@@ -1,9 +1,12 @@
-# Git Commit With Rust.
+# Git Commands With Rust.
+
 ## Description
 
 I was tired to manually make proper commit messages so I made this Rust script to learn the basics of Rust AND solve my problem.
 
 When I added files to git, I use to manually make a description of what I’ve done for eacch file. To make it readable I am using this structure
+
+I also wanted to make my life easier with switching branches and stashing changes.
 
 ```
 [commit_nb] TL;DR Brief description
@@ -21,7 +24,7 @@ When I added files to git, I use to manually make a description of what I’ve d
 
 So I made this program in order to generate this file for me from the ```git status –-porcelain``` output.
 
-## Problems
+### Problems
 
 If I’ve added a file that is not needed in the commit file, I have to remove it every time.
 So I've made the implementation of '.commitignore' file that works EXACTLY as the '.gitignore' file.
@@ -35,19 +38,35 @@ So I've made the implementation of '.commitignore' file that works EXACTLY as th
 
 Where the only available option is ```-v``` or ```--verbose``` to get more information about what the program is doing.
 
-Where the available commands are:
-- ```-g``` or ```--generate``` to generate the commit file.
-- ```-c``` or ```--commit``` to commit the changes with the commit message in the commit file.
-- ```-p``` or ```--push``` to push the changes to the remote repository.
-- ```-cp``` or ```--commit-push``` to commit the changes with the commit message in the commit file and then push the changes to the remote repository.
+## Commands
+
+### `-g` or `--generate`
+This command will generate the commit report file from the `git status --porcelain` output, without the files in the `.commitignore` file.
+
+### `-c` or `--commit`
+This command will commit the changes with the commit message in the commit file.
+Can be combined with the [push](#-p-or---push) command.
+
+### `-p` or `--push`
+This command will push the changes to the remote repository.
+We can also add arguments behind the command to push the changes with specific arguments.
+
+### `s` or `--switch`
+This command will ask you to select a branch to switch to.
+It has its own options:
+- `-s` or `--stash`
+  This option will stash the changes before switching to the branch.
+
+- `-a` or `--apply_stash`
+  This option will apply the stash after switching to the branch.
 
 ### Generate the commit file
 
 Let's say you have added 3 files to git.
 
-``` 
-> git status 
-M src/main.rs 
+```
+> git status
+M src/main.rs
 M src/commit.rs
 M src/utils.rs
 ```
@@ -65,15 +84,15 @@ This will generate this file
 
 - src/main.rs
 
-  
-  
+
+
 - src/commit.rs
 
-  
+
 
 - src/utils.rs
 
-    
+
 ```
 (The spaces are important for the markdown to work)
 
@@ -87,7 +106,7 @@ This will generate this file
   blabla
 
 - src/commit.rs
-    
+
   blablou
 
 
@@ -99,21 +118,21 @@ You can commit the changes with the following commands:
   ```
   > rust_binary_name -c # or --commit
   ```
-  
+
   This will commit the changes with the commit message in the commit file.
 
 - Commit and push
   ```
   > rust_binary_name -cp
   ```
-  
+
   This will commit the changes with the commit message in the commit file and push the changes to the remote repository.
 
 - Commit and push with a push arguments
   ```
   > rust_binary_name -cpa --set-upstream origin main
   ```
-  
+
   This will commit the changes with the commit message from the file, push the changes with the given arguments for push.
 
 ### Added all files with exceptions

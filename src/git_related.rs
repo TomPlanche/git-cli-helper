@@ -9,6 +9,9 @@ use std::path::Path;
 use std::process::Command;
 
 // Functions  ===========================================================================  Functions
+
+// GIT FUNCTIONS ===================================================================== GIT FUNCTIONS
+
 /// # add_with_exclude
 /// Adds the files to the git index.
 /// It will exclude the files and folders passed in the 'exclude' argument.
@@ -115,6 +118,45 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 }
 
 ///
+/// # stash_and_mabye_apply
+/// Stashes the changes and maybe applies them.
+///
+/// ## Arguments
+/// * `apply` - If the stash should be applied
+///
+/// ## Returns
+/// * `Result<(), String>` - The result of the stash
+pub fn stash_and_maybe_apply(apply: bool) {
+    let _ = Command::new("git")
+        .arg("stash")
+        .arg(if apply { "apply" } else { "" })
+        .output()
+        .expect("failed to execute process");
+}
+
+///
+/// # switch_branch
+/// Switches the branch.
+///
+/// ## Arguments
+/// * `branch` - The branch to switch to
+///
+/// ## Returns
+/// * Nothing
+pub fn switch_branch(branch: String) {
+    let command = Command::new("git")
+        .arg("switch")
+        .arg(branch)
+        .output()
+        .expect("failed to execute process");
+
+    if !command.status.success() {
+        println!("{}", Red.bold().paint("Failed to switch branch."));
+    }
+}
+
+/// GETTERS  ==============================================================================  GETTERS
+///
 /// # get_current_branch
 /// Returns the current git branch.
 ///
@@ -123,6 +165,7 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 ///
 /// ## Returns
 /// * `String` - The current git branch
+#[allow(dead_code)]
 pub fn get_current_branch() -> String {
     // Get the current branch
     let output = Command::new("git")
@@ -137,6 +180,44 @@ pub fn get_current_branch() -> String {
 
     // Return the current branch
     output.trim().to_string()
+}
+
+///
+/// # get_branches_list
+/// Returns the list of git branches of the repository.
+///
+/// ## Arguments
+/// * `()` - Nothing
+///
+/// ## Returns
+/// * `Vec<String>` - The list of git branches
+pub fn get_branches_list() -> Vec<String> {
+    // Get the list of branches
+    let output = Command::new("git")
+        .arg("branch")
+        .output()
+        .expect("failed to execute process");
+
+    // Convert the output to a string
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    // Create a vector to store the branches
+    let mut branches: Vec<String> = Vec::new();
+
+    // For each line in the output
+    for line in output.lines() {
+        // Remove the * and the space
+        let line = line
+            .trim_start_matches("* ")
+            .trim_start_matches("  ")
+            .to_string();
+
+        // Push the branch to the vector
+        branches.push(line);
+    }
+
+    // Return the list of branches
+    branches
 }
 
 ///
@@ -162,6 +243,7 @@ pub fn get_current_commit_nb() -> u16 {
         .unwrap_or(0)
 }
 
+// PROCESSING FUNCTIONS ====================================================== PROCESSING FUNCTIONS
 ///
 /// # process_git_status
 /// Processes the git status.
@@ -296,8 +378,8 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        add_with_exclude, get_current_branch, get_current_commit_nb, process_deteted_files,
-        process_git_status, process_gitignore_file,
+        add_with_exclude, get_branches_list, get_current_branch, get_current_commit_nb,
+        process_deteted_files, process_git_status, process_gitignore_file,
     };
 
     #[test]
@@ -307,7 +389,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 43)
+        assert_eq!(get_current_commit_nb(), 44)
     }
 
     #[test]
@@ -376,5 +458,13 @@ mod tests {
         let ignored_files = process_gitignore_file(gitignore_test_file);
 
         assert_eq!(ignored_files.len() == 9, true);
+    }
+
+    #[test]
+    fn test_get_branches_list() {
+        let branches = get_branches_list();
+
+        assert_eq!(branches.len() == 1, true);
+        assert_eq!(branches[0] == "master", true)
     }
 }
