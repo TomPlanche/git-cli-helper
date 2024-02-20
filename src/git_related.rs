@@ -148,11 +148,11 @@ pub fn get_current_branch() -> String {
 ///
 /// ## Returns
 /// * `u16` - The number of commits
-pub fn get_current_commit_nb(branch: Option<&str>) -> u16 {
+pub fn get_current_commit_nb() -> u16 {
     let output = Command::new("git")
         .arg("rev-list")
         .arg("--count")
-        .arg(branch.unwrap_or(get_current_branch().as_str()))
+        .arg("HEAD")
         .output()
         .expect("failed to execute process");
 
@@ -307,7 +307,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(None), 42)
+        assert_eq!(get_current_commit_nb(), 43)
     }
 
     #[test]
