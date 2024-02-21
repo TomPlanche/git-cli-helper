@@ -25,7 +25,7 @@ use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Select};
 use git_related::{
     add_with_exclude, commit, get_branches_list, get_current_commit_nb, process_deteted_files,
-    process_git_status, process_gitignore_file, push, read_git_status, stash_and_maybe_apply,
+    process_git_status, process_gitignore_file, push, read_git_status, stash_and_maybe_pop,
     switch_branch,
 };
 
@@ -368,9 +368,9 @@ fn main() {
         }
 
         Commands::Switch { stash, apply_stash } => {
-            if *stash && !*apply_stash {
+            if *stash {
                 println!("Stashing changes...");
-                stash_and_maybe_apply(false);
+                stash_and_maybe_pop(false);
             }
 
             let branches: Vec<String> = get_branches_list();
@@ -391,7 +391,7 @@ fn main() {
                 switch_branch(chosen_branch.to_string());
 
                 if *apply_stash {
-                    stash_and_maybe_apply(true);
+                    stash_and_maybe_pop(true);
                 }
             } else {
                 println!("Aborted");

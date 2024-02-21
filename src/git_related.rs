@@ -126,12 +126,19 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the stash
-pub fn stash_and_maybe_apply(apply: bool) {
-    let _ = Command::new("git")
-        .arg("stash")
-        .arg(if apply { "apply" } else { "" })
-        .output()
-        .expect("failed to execute process");
+pub fn stash_and_maybe_pop(pop: bool) {
+    if pop {
+        let _ = Command::new("git")
+            .arg("stash")
+            .arg("pop")
+            .output()
+            .expect("failed to execute process");
+    } else {
+        let _ = Command::new("git")
+            .arg("stash")
+            .output()
+            .expect("failed to execute process");
+    }
 }
 
 ///
