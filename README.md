@@ -20,40 +20,45 @@ I also wanted to make my life easier with switching branches and stashing change
 	blablou
 
 ```
+
 (The new line after the file name is important for the markdown to work)
 
-So I made this program in order to generate this file for me from the ```git status –-porcelain``` output.
+So I made this program in order to generate this file for me from the `git status –-porcelain` output.
 
 ### Problems
 
 If I’ve added a file that is not needed in the commit file, I have to remove it every time.
 So I've made the implementation of '.commitignore' file that works EXACTLY as the '.gitignore' file.
 
-
-
 ## Usage
+
 ```bash
 > rust_binary_name [OPTIONS] <COMMAND>
 ```
 
-Where the only available option is ```-v``` or ```--verbose``` to get more information about what the program is doing.
+Where the only available option is `-v` or `--verbose` to get more information about what the program is doing.
 
 ## Commands
 
 ### `-g` or `--generate`
+
 This command will generate the commit report file from the `git status --porcelain` output, without the files in the `.commitignore` file.
 
 ### `-c` or `--commit`
+
 This command will commit the changes with the commit message in the commit file.
 Can be combined with the [push](#-p-or---push) command.
 
 ### `-p` or `--push`
+
 This command will push the changes to the remote repository.
 We can also add arguments behind the command to push the changes with specific arguments.
 
 ### `s` or `--switch`
+
 This command will ask you to select a branch to switch to.
 It has its own options:
+
 - `-s` or `--stash`
   This option will stash the changes before switching to the branch.
 
@@ -94,6 +99,7 @@ This will generate this file
 
 
 ```
+
 (The spaces are important for the markdown to work)
 
 ### Commit the changes with the commit file message
@@ -111,10 +117,13 @@ This will generate this file
 
 
 ```
+
 (Once again, the spaces are important for the markdown to work)
 
 You can commit the changes with the following commands:
+
 - Simple commit
+
   ```
   > rust_binary_name -c # or --commit
   ```
@@ -122,6 +131,7 @@ You can commit the changes with the following commands:
   This will commit the changes with the commit message in the commit file.
 
 - Commit and push
+
   ```
   > rust_binary_name -cp
   ```
@@ -129,6 +139,7 @@ You can commit the changes with the following commands:
   This will commit the changes with the commit message in the commit file and push the changes to the remote repository.
 
 - Commit and push with a push arguments
+
   ```
   > rust_binary_name -cpa --set-upstream origin main
   ```
@@ -138,10 +149,10 @@ You can commit the changes with the following commands:
 ### Added all files with exceptions
 
 You can add all files to the commit with specific exceptions with the following command:
+
 ```
 > rust_binary_name -ae ./README.md ./src/main.rs
 ```
-
 
 ## `.commitignore` file.
 
@@ -149,7 +160,9 @@ This files works exactly as the `.gitignore` file.
 If you want to ignore a file from the commit file, just add it to the `.commitignore` file. Works for directories too :)
 
 ## Installation
+
 To install this program, follow these steps:
+
 - Clone the repository
 - Go to the repository folder
 - Run the following command

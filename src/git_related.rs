@@ -118,14 +118,14 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 }
 
 ///
-/// # stash_and_mabye_apply
-/// Stashes the changes and maybe applies them.
+/// # stash_and_mabye_pop
+/// Stashes the changes and maybe pop them.
 ///
 /// ## Arguments
-/// * `apply` - If the stash should be applied
+/// * `pop` - If the stash should be popped.
 ///
 /// ## Returns
-/// * `Result<(), String>` - The result of the stash
+/// * `()` - Nothing
 pub fn stash_and_maybe_pop(pop: bool) {
     if pop {
         let _ = Command::new("git")

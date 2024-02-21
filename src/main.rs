@@ -16,6 +16,9 @@ mod utils;
 #[path = "git_related.rs"]
 mod git_related;
 
+#[path = "my_theme.rs"]
+mod my_theme;
+
 use std::io::prelude::*;
 use std::path::Path;
 
@@ -369,20 +372,18 @@ fn main() {
 
         Commands::Switch { stash, apply_stash } => {
             if *stash {
-                println!("Stashing changes...");
                 stash_and_maybe_pop(false);
             }
 
             let branches: Vec<String> = get_branches_list();
 
-            let chosen_branch = &branches[Select::new()
-                .with_prompt("Choose a branch")
+            let chosen_branch = &branches[Select::with_theme(&my_theme::ColorfulTheme::default())
                 .default(0)
                 .items(&branches)
                 .interact()
                 .unwrap()];
 
-            if Confirm::new()
+            if Confirm::with_theme(&my_theme::ColorfulTheme::default())
                 .with_prompt(&format!("Switch to branch: {} ?", chosen_branch))
                 .default(true)
                 .interact()
