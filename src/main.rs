@@ -19,20 +19,21 @@ mod git_related;
 #[path = "my_theme.rs"]
 mod my_theme;
 
-use std::io::prelude::*;
+use std::io::prelude::Write;
 use std::path::Path;
 
-use crate::utils::check_for_file_in_folder;
 use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Select};
 use git_related::{
-    add_with_exclude, commit, get_branches_list, get_current_commit_nb, process_deteted_files,
-    process_git_status, process_gitignore_file, push, read_git_status, stash_and_maybe_pop,
-    switch_branch,
+    add_with_exclude, commit, find_project_root, get_branches_list, get_current_commit_nb,
+    process_deteted_files, process_git_status, process_gitignore_file, push, read_git_status,
+    stash_and_maybe_pop, switch_branch,
 };
+use utils::check_for_file_in_folder;
 
 // Constants  ===========================================================================  Constants
+const GITIGNORE_FILE_PATH: &str = ".gitignore";
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
 const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 
@@ -131,7 +132,7 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
     let folder_path = path.parent().unwrap();
 
     // Get the path to the commit message file
-    let gitignore_path = folder_path.join(".gitignore");
+    let gitignore_path = folder_path.join(GITIGNORE_FILE_PATH);
     let comitignore_path = folder_path.join(COMMITIGNORE_FILE_PATH);
 
     // If the COMMIT_MESSAGE_FILE exists
@@ -315,7 +316,10 @@ fn main() {
     // Folder caller - the folder from which the program was called
     let caller = std::env::current_dir().unwrap();
 
-    let commit_message_file_path_str = format!("{}/{}", caller.display(), COMMIT_MESSAGE_FILE);
+    let project_root = find_project_root(&caller);
+
+    let commit_message_file_path_str =
+        format!("{}/{}", project_root.display(), COMMIT_MESSAGE_FILE);
     let commit_message_file_path = Path::new(&commit_message_file_path_str);
 
     let verbose = cli.verbose;

@@ -5,7 +5,7 @@
 use crate::utils::read_file;
 
 use ansi_term::Colour::{Green, Red};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 // Functions  ===========================================================================  Functions
@@ -379,6 +379,35 @@ pub fn read_git_status() -> String {
     }
 }
 
+// Other functions ===============================================================  Other functions
+/// # find_project_root
+/// Finds the project root.
+///
+/// ## Arguments
+/// * `caller_path` - The path to the caller.
+///
+/// ## Returns
+/// * `PathBuf` - The path to the project root.
+pub fn find_project_root(caller_path: &Path) -> PathBuf {
+    // Get the path to the caller
+    let mut path = caller_path.to_path_buf();
+
+    // While the path is not the root
+    while path.parent().is_some() {
+        // If the path contains the .git folder
+        if path.join(".git").exists() {
+            // Return the path
+            return path;
+        }
+
+        // Go up one level
+        path = path.parent().unwrap().to_path_buf();
+    }
+
+    // Return the path
+    path
+}
+
 // Tests ==================================================================================== Tests
 #[cfg(test)]
 mod tests {
@@ -396,7 +425,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 44)
+        assert_eq!(get_current_commit_nb(), 47)
     }
 
     #[test]
