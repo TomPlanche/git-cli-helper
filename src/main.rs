@@ -2,12 +2,6 @@
 /// # main.rs
 /// Main file for the project.
 ///
-/// ## Arguments
-/// * commit - Commit the changes
-/// * push - Push the changes
-///
-///
-///
 /// Read the [README.md](../README.md) for more information.
 // Imports ================================================================================= Imports
 #[path = "./utils.rs"]
@@ -46,7 +40,7 @@ const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
 \t- Generates the 'commit_message.md' file.")]
 #[command(author = "Tom P. <tomplanche@icloud.com>")]
 #[command(help_template = "{about}\nMade by: {author}\n\nUSAGE:\n{usage}\n\n{all-args}\n")]
-#[command(name = "custom-git-commit")]
+#[command(name = "git-commands")]
 struct Cli {
     /// Commands
     #[command(subcommand)]
@@ -64,6 +58,15 @@ struct Cli {
     about = "Creates all the folders needed for the Advent of Code challenges of the given year."
 )]
 enum Commands {
+    /// Add and exclude subcommand
+    /// Add all files to the git add command and exclude the files passed by the 'exclude' argument.
+    #[command(short_flag = 'a')]
+    AddAndExclude {
+        /// Files to exclude from the git add command
+        #[arg(short, long)]
+        exclude: Vec<String>,
+    },
+
     /// Commit subcommand
     /// Directly commit the file with the text in `commit_message.md'.
     #[command(short_flag = 'c')]
@@ -89,15 +92,6 @@ enum Commands {
         /// Optional 'push args' argument. Only works if the 'commit' and 'push' arguments are passed.
         #[arg(short)]
         args: Option<Vec<String>>,
-    },
-
-    /// Add and exclude subcommand
-    /// Add all files to the git add command and exclude the files passed by the 'exclude' argument.
-    #[command(short_flag = 'a')]
-    AddAndExclude {
-        /// Files to exclude from the git add command
-        #[arg(short, long)]
-        exclude: Vec<String>,
     },
 
     /// Facilitate switching between branches
@@ -326,8 +320,6 @@ fn main() {
 
     match &cli.command {
         Commands::AddAndExclude { exclude } => {
-            println!("{:?}", exclude);
-
             let successful_add =
                 add_with_exclude(exclude, verbose).expect("Error adding the files");
 
@@ -375,6 +367,12 @@ fn main() {
         }
 
         Commands::Switch { stash, apply_stash } => {
+            // prevent stash AND apply_stash
+            if *stash && *apply_stash {
+                eprintln!("❌ You can't use --stash and --apply-stash at the same time.");
+                std::process::exit(1);
+            }
+
             if *stash {
                 stash_and_maybe_pop(false);
             }
@@ -399,7 +397,7 @@ fn main() {
                     stash_and_maybe_pop(true);
                 }
             } else {
-                println!("Aborted");
+                println!("Bye !");
             }
         }
     }

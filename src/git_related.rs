@@ -31,9 +31,7 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result
         .expect("failed to execute process");
 
     for file in files_to_exclude {
-        // check if the document exists
         if Path::new(&file).exists() {
-            // rm command
             let _ = Command::new("git")
                 .arg("rm")
                 .arg("-r")
@@ -64,7 +62,6 @@ pub fn commit(message: String, verbose: bool) -> Result<bool, String> {
 
     let final_args: Vec<&str> = vec!["commit", "-m", message.as_str()];
 
-    // Command
     let command = Command::new("git")
         .args(final_args)
         .output()
@@ -96,8 +93,8 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
         println!("\nPushing...");
     }
 
+    // Final args for the `git push` command
     let mut final_args: Vec<String> = vec!["push".to_string()];
-
     final_args.extend(args.unwrap_or_default());
 
     // Command
@@ -127,18 +124,15 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 /// ## Returns
 /// * `()` - Nothing
 pub fn stash_and_maybe_pop(pop: bool) {
+    let mut args = vec!["stash".to_string()];
     if pop {
-        let _ = Command::new("git")
-            .arg("stash")
-            .arg("pop")
-            .output()
-            .expect("failed to execute process");
-    } else {
-        let _ = Command::new("git")
-            .arg("stash")
-            .output()
-            .expect("failed to execute process");
+        args.push("pop".to_string());
     }
+
+    let _ = Command::new("git")
+        .args(args)
+        .output()
+        .expect("failed to execute process");
 }
 
 ///
@@ -183,10 +177,7 @@ pub fn get_current_branch() -> String {
         .expect("failed to execute process");
 
     // Convert the output to a string
-    let output = String::from_utf8_lossy(&output.stdout);
-
-    // Return the current branch
-    output.trim().to_string()
+    String::from_utf8_lossy(&output.stdout).trim().to_string()
 }
 
 ///
