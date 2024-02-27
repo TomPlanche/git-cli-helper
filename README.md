@@ -2,11 +2,9 @@
 
 ## Description
 
-I was tired to manually make proper commit messages so I made this Rust script to learn the basics of Rust AND solve my problem.
+I was first tired to manually make proper commit messages so I made this Rust script to learn the basics of Rust **_AND_** solve my problem.
 
-When I added files to git, I use to manually make a description of what I’ve done for eacch file. To make it readable I am using this structure
-
-I also wanted to make my life easier with switching branches and stashing changes.
+When I added files to git, I use to manually make a description of what I’ve done for each file. To make it readable I am using this structure
 
 ```
 [commit_nb] TL;DR Brief description
@@ -23,20 +21,20 @@ I also wanted to make my life easier with switching branches and stashing change
 
 (The new line after the file name is important for the markdown to work)
 
+I also wanted to make my life easier with switching branches and stashing changes.
+
 So I made this program in order to generate this file for me from the `git status –-porcelain` output.
 
 ### Problems
 
 If I’ve added a file that is not needed in the commit file, I have to remove it every time.
-So I've made the implementation of '.commitignore' file that works EXACTLY as the '.gitignore' file.
+So I've made the implementation of '.commitignore' file that works **_EXACTLY_** as a '.gitignore' file.
 
 ## Usage
 
 ```bash
-> rust_binary_name [OPTIONS] <COMMAND>
+> rust_binary_name <COMMAND> [OPTIONS] [ARGS]
 ```
-
-Where the only available option is `-v` or `--verbose` to get more information about what the program is doing.
 
 ## Commands
 
@@ -54,7 +52,7 @@ Can be combined with the [push](#-p-or---push) command.
 This command will push the changes to the remote repository.
 We can also add arguments behind the command to push the changes with specific arguments.
 
-### `s` or `--switch`
+### `-s` or `--switch`
 
 This command will ask you to select a branch to switch to.
 It has its own options:
@@ -65,7 +63,7 @@ It has its own options:
 - `-a` or `--apply_stash`
   This option will apply the stash after switching to the branch.
 
-### Generate the commit file
+#### Generate the commit file
 
 Let's say you have added 3 files to git.
 
@@ -102,7 +100,7 @@ This will generate this file
 
 (The spaces are important for the markdown to work)
 
-### Commit the changes with the commit file message
+#### Commit the changes with the commit file message
 
 ```
 [28] TL;DR Brief description
@@ -146,7 +144,7 @@ You can commit the changes with the following commands:
 
   This will commit the changes with the commit message from the file, push the changes with the given arguments for push.
 
-### Added all files with exceptions
+#### Added all files with exceptions
 
 You can add all files to the commit with specific exceptions with the following command:
 
