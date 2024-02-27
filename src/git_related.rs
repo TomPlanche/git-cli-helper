@@ -199,23 +199,19 @@ pub fn get_branches_list() -> Vec<String> {
     // Convert the output to a string
     let output = String::from_utf8_lossy(&output.stdout);
 
-    // Create a vector to store the branches
-    let mut branches: Vec<String> = Vec::new();
-
-    // For each line in the output
-    for line in output.lines() {
-        // Remove the * and the space
-        let line = line
-            .trim_start_matches("* ")
-            .trim_start_matches("  ")
-            .to_string();
-
-        // Push the branch to the vector
-        branches.push(line);
-    }
-
-    // Return the list of branches
-    branches
+    // we need to trim the start of each line
+    // if it starts with:
+    //  a star and a space
+    //  two spaces
+    // use trim_start_matches to remove the first characters
+    output
+        .lines()
+        .map(|x| {
+            x.trim_start_matches("* ")
+                .trim_start_matches("  ")
+                .to_string()
+        })
+        .collect()
 }
 
 ///
@@ -256,19 +252,24 @@ pub fn process_git_status(message: &str) -> Vec<String> {
     // Regex to match the modified files and the added files
     let regex_rule = regex::Regex::new(r"^[MTARCU][A-Z\?\! ]\s(.*)$").unwrap();
 
-    // Create a vector to store the modified / added files while parsing the git status message
-    let mut modified_files: Vec<String> = Vec::new();
-
-    // For each line in the git status message
-    for line in message.lines() {
-        if regex_rule.is_match(line) {
-            let file_name = regex_rule.captures(line).unwrap().get(1).unwrap().as_str();
-
-            modified_files.push(file_name.to_string());
-        }
-    }
-
-    modified_files
+    message
+        .lines()
+        .filter_map(|line| {
+            if regex_rule.is_match(line) {
+                Some(
+                    regex_rule
+                        .captures(line)
+                        .unwrap()
+                        .get(1)
+                        .unwrap()
+                        .as_str()
+                        .to_string(),
+                )
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 ///
@@ -319,27 +320,24 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
     // Regex to match the files and folders to ignore
     let regex_rule = regex::Regex::new(r"^([^#]\S*)$").unwrap();
 
-    // Create a vector to store the files and folders to ignore while parsing the gitignore file
-    let mut files_to_ignore: Vec<String> = Vec::new();
-
-    // For each line in the gitignore file
-    for line in gitignore_file.lines() {
-        // If the line matches the regex
-        if regex_rule.is_match(line) {
-            // Add the file or folder to ignore to the vector
-            files_to_ignore.push(
-                regex_rule
-                    .captures(line)
-                    .unwrap()
-                    .get(1)
-                    .unwrap()
-                    .as_str()
-                    .to_string(),
-            );
-        }
-    }
-
-    files_to_ignore
+    gitignore_file
+        .lines()
+        .filter_map(|line| {
+            if regex_rule.is_match(line) {
+                Some(
+                    regex_rule
+                        .captures(line)
+                        .unwrap()
+                        .get(1)
+                        .unwrap()
+                        .as_str()
+                        .to_string(),
+                )
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 ///
@@ -416,7 +414,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 47)
+        assert_eq!(get_current_commit_nb(), 49)
     }
 
     #[test]
@@ -491,7 +489,7 @@ mod tests {
     fn test_get_branches_list() {
         let branches = get_branches_list();
 
-        assert_eq!(branches.len() == 1, true);
-        assert_eq!(branches[0] == "master", true)
+        assert_eq!(branches.len() == 2, true);
+        assert_eq!(branches[0] == "aled", true)
     }
 }
