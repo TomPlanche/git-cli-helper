@@ -11,10 +11,11 @@ use std::path::Path;
 /// Checks if a file is in a folder.
 ///
 /// ## Arguments
-/// * `file_path` - The path of the file
-/// * `folder_path` - The path of the folder
+/// * `file_path` - `&Path` - The path of the file
+/// * `folder_path` - `&Path` - The path of the folder
 ///
 /// ## Example
+/// See the tests for more examples.
 /// ```
 /// use std::path::Path;
 ///
@@ -54,8 +55,7 @@ pub fn check_for_file_in_folder(file_path: &Path, folder_path: &Path) -> bool {
 /// Reads a file from a source folder.
 ///
 /// ## Arguments
-/// * `filename` - The name of the file to read
-/// * `source` - The source folder
+/// * `path` - `&path` - The path of the file.
 ///
 /// ## Returns
 /// * `String` - The content of the file

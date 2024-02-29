@@ -114,11 +114,8 @@ enum Commands {
 /// It also adds the modified / added files to the commit message file.
 ///
 /// ## Arguments
-/// * `source` - The source folder
-/// * `verbose` - Verbose the operation
-///
-/// ## Returns
-/// * `()` - Nothing
+/// * `path` - `&Path` - The source folder
+/// * `verbose` - `bool` - Verbose the operation
 fn prepare_commit_msg(path: &Path, verbose: bool) {
     // Get the location of the file passed by 'path'
     // ex: path = /home/user/project/src/main.rs
@@ -229,10 +226,7 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
 /// Creates the needed files.
 ///
 /// ## Arguments
-/// * `verbose` - Verbose the operation
-///
-/// ## Returns
-/// * `()` - Nothing
+/// * `verbose` - `bool` - Verbose the operation
 fn create_needed_files(verbose: bool) {
     if verbose {
         println!("Creating the needed files...");

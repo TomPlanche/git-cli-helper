@@ -17,8 +17,8 @@ use std::process::Command;
 /// It will exclude the files and folders passed in the 'exclude' argument.
 ///
 /// ## Arguments
-/// * `exclude` - The files and folders to exclude
-/// * `verbose` - If the add should be verbose or not
+/// * `files_to_exclude` - `&Vec<String>` - the 'paths' of the file to exclude.
+/// * `verbose` - `bool` - Should be verbose or not
 pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result<bool, String> {
     if verbose {
         println!("Adding files...");
@@ -31,6 +31,10 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result
         .expect("failed to execute process");
 
     for file in files_to_exclude {
+        if verbose {
+            println!("  excuding {}", file)
+        }
+
         if Path::new(&file).exists() {
             let _ = Command::new("git")
                 .arg("rm")
@@ -50,8 +54,8 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result
 /// Commits the changes.
 ///
 /// ## Arguments
-/// * `message` - The commit message
-/// * `verbose` - If the commit should be verbose or not
+/// * `message` - `String` - The commit message
+/// * `verbose` - `bool` - If the commit should be verbose or not
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the commit
@@ -83,8 +87,8 @@ pub fn commit(message: String, verbose: bool) -> Result<bool, String> {
 /// Pushes the changes.
 ///
 /// ## Arguments
-/// * `args` - The args to pass to the command
-/// * `verbose` - If the push should be verbose or not
+/// * `args` - `Option<Vec<String>>` - The args to pass to the command
+/// * `verbose` - `bool` - If the push should be verbose or not
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the push
@@ -119,10 +123,7 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 /// Stashes the changes and maybe pop them.
 ///
 /// ## Arguments
-/// * `pop` - If the stash should be popped.
-///
-/// ## Returns
-/// * `()` - Nothing
+/// * `pop` - `bool` - If the stash should be popped.
 pub fn stash_and_maybe_pop(pop: bool) {
     let mut args = vec!["stash".to_string()];
     if pop {
@@ -140,10 +141,7 @@ pub fn stash_and_maybe_pop(pop: bool) {
 /// Switches the branch.
 ///
 /// ## Arguments
-/// * `branch` - The branch to switch to
-///
-/// ## Returns
-/// * Nothing
+/// * `branch` - `String` - The branch to switch to
 pub fn switch_branch(branch: String) {
     let command = Command::new("git")
         .arg("switch")
@@ -160,9 +158,6 @@ pub fn switch_branch(branch: String) {
 ///
 /// # get_current_branch
 /// Returns the current git branch.
-///
-/// ## Arguments
-/// * `()` - Nothing
 ///
 /// ## Returns
 /// * `String` - The current git branch
@@ -184,9 +179,6 @@ pub fn get_current_branch() -> String {
 /// # get_branches_list
 /// Returns the list of git branches of the repository.
 ///
-/// ## Arguments
-/// * `()` - Nothing
-///
 /// ## Returns
 /// * `Vec<String>` - The list of git branches
 pub fn get_branches_list() -> Vec<String> {
@@ -199,11 +191,6 @@ pub fn get_branches_list() -> Vec<String> {
     // Convert the output to a string
     let output = String::from_utf8_lossy(&output.stdout);
 
-    // we need to trim the start of each line
-    // if it starts with:
-    //  a star and a space
-    //  two spaces
-    // use trim_start_matches to remove the first characters
     output
         .lines()
         .map(|x| {
@@ -389,11 +376,15 @@ pub fn find_project_root(caller_path: &Path) -> PathBuf {
             return path;
         }
 
+        // Exit the loop if the path is the root
+        if path.parent().is_none() {
+            break;
+        }
+
         // Go up one level
         path = path.parent().unwrap().to_path_buf();
     }
 
-    // Return the path
     path
 }
 
@@ -414,7 +405,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 49)
+        assert_eq!(get_current_commit_nb(), 51)
     }
 
     #[test]
