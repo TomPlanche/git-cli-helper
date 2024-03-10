@@ -297,8 +297,12 @@ pub fn process_deteted_files(message: &str) -> Vec<String> {
 /// ## Returns
 /// * `Vec<String>` - The files and folders to ignore
 pub fn process_gitignore_file(path: &Path) -> Vec<String> {
-    // Read the gitignore file
-    let gitignore_file = &read_file(path);
+    // look for the gitignore file
+    if !path.exists() {
+        return Vec::new();
+    }
+
+    let git_ignore_file = &read_file(path);
 
     // The gitignore file stores the files and folders to ignore
     // Each line is a file or folder to ignore
@@ -307,7 +311,7 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
     // Regex to match the files and folders to ignore
     let regex_rule = regex::Regex::new(r"^([^#]\S*)$").unwrap();
 
-    gitignore_file
+    git_ignore_file
         .lines()
         .filter_map(|line| {
             if regex_rule.is_match(line) {
@@ -405,7 +409,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 51)
+        assert_eq!(get_current_commit_nb(), 52)
     }
 
     #[test]
