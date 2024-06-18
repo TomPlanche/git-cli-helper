@@ -68,7 +68,7 @@ enum Commands {
     },
 
     /// Commit subcommand
-    /// Directly commit the file with the text in `commit_message.md'.
+    /// Directly commit the file with the text in `commit_message.md`.
     #[command(short_flag = 'c')]
     Commit {
         /// Optional 'push' argument. Only works if the 'commit' argument is passed.
@@ -108,7 +108,7 @@ enum Commands {
 }
 // Function(s) =========================================================================== Functions
 ///
-/// # prepare_commit_msg
+/// # `prepare_commit_msg`
 /// Prepares the commit message.
 /// It creates the commit message file and empty it if it already exists.
 /// It also adds the modified / added files to the commit message file.
@@ -148,8 +148,8 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
 
     let commit_number: u16 = get_current_commit_nb() + 1;
 
-    if let Err(e) = writeln!(commit_file, "[{}]\n\n", commit_number) {
-        eprintln!("Couldn't write to file: {}", e);
+    if let Err(e) = writeln!(commit_file, "[{commit_number}]\n\n") {
+        eprintln!("Couldn't write to file: {e}");
     }
 
     // For each modified file
@@ -195,15 +195,15 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
             }
         }
 
-        if let Err(e) = writeln!(commit_file, "- `{}`:\n\n\t\n", file) {
-            eprintln!("Couldn't write to file: {}", e);
+        if let Err(e) = writeln!(commit_file, "- `{file}`:\n\n\t\n") {
+            eprintln!("Couldn't write to file: {e}");
         }
     }
 
     // For each deleted file
     for file in deleted_files {
-        if let Err(e) = writeln!(commit_file, "- `{}`: deleted\n", file) {
-            eprintln!("Couldn't write to file: {}", e);
+        if let Err(e) = writeln!(commit_file, "- `{file}`: deleted\n") {
+            eprintln!("Couldn't write to file: {e}");
         }
     }
 
@@ -222,7 +222,7 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
 }
 
 ///
-/// # create_needed_files
+/// # `create_needed_files`
 /// Creates the needed files.
 ///
 /// ## Arguments
@@ -280,7 +280,7 @@ fn create_needed_files(verbose: bool) {
 }
 
 ///
-/// # print_commit_message
+/// # `print_commit_message`
 /// Prints the commit message.
 ///
 /// ## Arguments
@@ -288,15 +288,11 @@ fn create_needed_files(verbose: bool) {
 ///
 /// ## Returns
 /// * `()` - Nothing
-fn print_commit_message(commit_message: String) {
+fn print_commit_message(commit_message: &str) {
     let delimiter = "------------------------------------------------";
-    println!(
-        "\nCommit message: \n{}\n{}\n{}",
-        delimiter, commit_message, delimiter
-    );
+    println!("\nCommit message: \n{delimiter}\n{commit_message}\n{delimiter}");
 }
 // MAIN ======================================================================================= MAIN
-/// # Main function
 fn main() {
     // Read the passed arguments
     let cli = Cli::parse();
@@ -314,8 +310,7 @@ fn main() {
 
     match &cli.command {
         Commands::AddAndExclude { exclude } => {
-            let successful_add =
-                add_with_exclude(exclude, verbose).expect("Error adding the files");
+            let successful_add = add_with_exclude(exclude, verbose);
 
             if successful_add {
                 println!("{} ✅ ", Green.bold().paint("Added the files"));
@@ -329,16 +324,15 @@ fn main() {
                 let commit_message = utils::read_file(commit_message_file_path);
 
                 if verbose {
-                    print_commit_message(commit_message.clone());
+                    print_commit_message(&commit_message.clone());
                 }
 
                 // Commit the changes
                 let succesfull_commit =
-                    commit(commit_message, verbose).expect("Error commiting the changes");
+                    commit(&commit_message, verbose).expect("Error commiting the changes");
 
                 if *push && succesfull_commit {
-                    git_related::push(args.clone(), verbose.clone())
-                        .expect("Error pushing the changes");
+                    git_related::push(args.clone(), verbose).expect("Error pushing the changes");
                 }
             } else {
                 // Crash the program
@@ -380,7 +374,7 @@ fn main() {
                 .unwrap()];
 
             if Confirm::with_theme(&my_theme::ColorfulTheme::default())
-                .with_prompt(&format!("Switch to branch: {} ?", chosen_branch))
+                .with_prompt(&format!("Switch to branch: {chosen_branch} ?"))
                 .default(true)
                 .interact()
                 .unwrap()

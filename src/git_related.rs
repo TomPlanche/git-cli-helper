@@ -1,5 +1,5 @@
 ///
-/// # git_related
+/// # `git_related.rs`
 /// Contains functions related to git.
 // Imports ================================================================================= Imports
 use crate::utils::read_file;
@@ -12,14 +12,14 @@ use std::process::Command;
 
 // GIT FUNCTIONS ===================================================================== GIT FUNCTIONS
 
-/// # add_with_exclude
+/// # `add_with_exclude`
 /// Adds the files to the git index.
 /// It will exclude the files and folders passed in the 'exclude' argument.
 ///
 /// ## Arguments
 /// * `files_to_exclude` - `&Vec<String>` - the 'paths' of the file to exclude.
 /// * `verbose` - `bool` - Should be verbose or not
-pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result<bool, String> {
+pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> bool {
     if verbose {
         println!("Adding files...");
     }
@@ -32,7 +32,7 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result
 
     for file in files_to_exclude {
         if verbose {
-            println!("  excuding {}", file)
+            println!("  excuding {file}");
         }
 
         if Path::new(&file).exists() {
@@ -46,7 +46,7 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result
         }
     }
 
-    Ok(true)
+    true
 }
 
 ///
@@ -59,12 +59,12 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> Result
 ///
 /// ## Returns
 /// * `Result<(), String>` - The result of the commit
-pub fn commit(message: String, verbose: bool) -> Result<bool, String> {
+pub fn commit(message: &str, verbose: bool) -> Result<bool, String> {
     if verbose {
         println!("Commiting...");
     }
 
-    let final_args: Vec<&str> = vec!["commit", "-m", message.as_str()];
+    let final_args: Vec<&str> = vec!["commit", "-m", message];
 
     let command = Command::new("git")
         .args(final_args)
@@ -119,7 +119,7 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
 }
 
 ///
-/// # stash_and_mabye_pop
+/// # `stash_and_mabye_pop`
 /// Stashes the changes and maybe pop them.
 ///
 /// ## Arguments
@@ -128,6 +128,8 @@ pub fn stash_and_maybe_pop(pop: bool) {
     let mut args = vec!["stash".to_string()];
     if pop {
         args.push("pop".to_string());
+    } else {
+        args.push("-u".to_string());
     }
 
     let _ = Command::new("git")
@@ -137,7 +139,7 @@ pub fn stash_and_maybe_pop(pop: bool) {
 }
 
 ///
-/// # switch_branch
+/// # `switch_branch`
 /// Switches the branch.
 ///
 /// ## Arguments
@@ -156,7 +158,7 @@ pub fn switch_branch(branch: String) {
 
 /// GETTERS  ==============================================================================  GETTERS
 ///
-/// # get_current_branch
+/// # `get_current_branch`
 /// Returns the current git branch.
 ///
 /// ## Returns
@@ -176,7 +178,7 @@ pub fn get_current_branch() -> String {
 }
 
 ///
-/// # get_branches_list
+/// # `get_branches_list`
 /// Returns the list of git branches of the repository.
 ///
 /// ## Returns
@@ -202,7 +204,7 @@ pub fn get_branches_list() -> Vec<String> {
 }
 
 ///
-/// # get_current_commit_nb
+/// # `get_current_commit_nb`
 /// Returns the number of commits.
 ///
 /// ## Arguments
@@ -226,7 +228,7 @@ pub fn get_current_commit_nb() -> u16 {
 
 // PROCESSING FUNCTIONS ====================================================== PROCESSING FUNCTIONS
 ///
-/// # process_git_status
+/// # `process_git_status`
 /// Processes the git status.
 /// It will parse the git status in order to prepare the git commit message.
 ///
@@ -260,7 +262,7 @@ pub fn process_git_status(message: &str) -> Vec<String> {
 }
 
 ///
-/// # process_deleted_files
+/// # `process_deleted_files`
 /// Processes the deleted files.
 ///
 /// ## Arguments
@@ -288,7 +290,7 @@ pub fn process_deteted_files(message: &str) -> Vec<String> {
 }
 
 ///
-/// # process_gitignore_file
+/// # `process_gitignore_file`
 /// Processes the gitignore file.
 ///
 /// ## Arguments
@@ -332,7 +334,7 @@ pub fn process_gitignore_file(path: &Path) -> Vec<String> {
 }
 
 ///
-/// # read_git_status
+/// # `read_git_status`
 /// Reads the git status.
 ///
 /// ## Returns
@@ -355,12 +357,12 @@ pub fn read_git_status() -> String {
         // Print an error message
         println!("{}", Red.bold().paint("Failed to read git status."));
 
-        String::from("")
+        String::new()
     }
 }
 
 // Other functions ===============================================================  Other functions
-/// # find_project_root
+/// # `find_project_root`
 /// Finds the project root.
 ///
 /// ## Arguments

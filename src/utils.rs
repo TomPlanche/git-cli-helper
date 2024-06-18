@@ -7,7 +7,7 @@ use std::path::Path;
 
 // Functions  ===========================================================================  Functions
 ///
-/// # check_for_file_in_folder
+/// # `check_for_file_in_folder`
 /// Checks if a file is in a folder.
 ///
 /// ## Arguments
@@ -51,7 +51,7 @@ pub fn check_for_file_in_folder(file_path: &Path, folder_path: &Path) -> bool {
 }
 
 ///
-/// # read_file
+/// # `read_file`
 /// Reads a file from a source folder.
 ///
 /// ## Arguments

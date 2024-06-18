@@ -1,203 +1,10 @@
 ///
-/// # my_theme.rs
-/// Code for custom dialoguer MultiSelect ColorfulTheme
-/// @see https://docs.rs/dialoguer/latest/dialoguer/theme/trait.Theme.html
+/// # `my_theme.rs`
+/// Code for custom dialoguer `MultiSelect` `ColorfulTheme`
+/// @see [theme trait doc](https://docs.rs/dialoguer/latest/dialoguer/theme/trait.Theme.html)
 use std::fmt;
 
 use console::{style, Style, StyledObject};
-
-/// Implements a theme for dialoguer.
-pub trait Theme {
-    /// Formats a prompt.
-    #[inline]
-    fn format_prompt(&self, f: &mut dyn fmt::Write, prompt: &str) -> fmt::Result {
-        write!(f, "{}:", prompt)
-    }
-
-    /// Formats out an error.
-    #[inline]
-    fn format_error(&self, f: &mut dyn fmt::Write, err: &str) -> fmt::Result {
-        write!(f, "error: {}", err)
-    }
-
-    /// Formats a confirm prompt.
-    fn format_confirm_prompt(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        default: Option<bool>,
-    ) -> fmt::Result {
-        if !prompt.is_empty() {
-            write!(f, "{} ", &prompt)?;
-        }
-        match default {
-            None => {}
-            Some(true) => write!(f, "[Y/n] ")?,
-            Some(false) => write!(f, "[y/N] ")?,
-        }
-        Ok(())
-    }
-
-    /// Formats a confirm prompt after selection.
-    fn format_confirm_prompt_selection(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        selection: bool,
-    ) -> fmt::Result {
-        if prompt.is_empty() {
-            write!(f, "{}", if selection { "yes" } else { "no" })
-        } else {
-            write!(f, "{} {}", &prompt, if selection { "yes" } else { "no" })
-        }
-    }
-
-    /// Formats an input prompt.
-    fn format_input_prompt(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        default: Option<&str>,
-    ) -> fmt::Result {
-        match default {
-            Some(default) if prompt.is_empty() => write!(f, "[{}]: ", default),
-            Some(default) => write!(f, "{} [{}]: ", prompt, default),
-            None => write!(f, "{}: ", prompt),
-        }
-    }
-
-    /// Formats an input prompt after selection.
-    #[inline]
-    fn format_input_prompt_selection(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        sel: &str,
-    ) -> fmt::Result {
-        write!(f, "{}: {}", prompt, sel)
-    }
-
-    /// Formats a password prompt.
-    #[inline]
-    fn format_password_prompt(&self, f: &mut dyn fmt::Write, prompt: &str) -> fmt::Result {
-        self.format_input_prompt(f, prompt, None)
-    }
-
-    /// Formats a password prompt after selection.
-    #[inline]
-    fn format_password_prompt_selection(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-    ) -> fmt::Result {
-        self.format_input_prompt_selection(f, prompt, "[hidden]")
-    }
-
-    /// Formats a select prompt.
-    #[inline]
-    fn format_select_prompt(&self, f: &mut dyn fmt::Write, prompt: &str) -> fmt::Result {
-        self.format_prompt(f, prompt)
-    }
-
-    /// Formats a select prompt after selection.
-    #[inline]
-    fn format_select_prompt_selection(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        sel: &str,
-    ) -> fmt::Result {
-        self.format_input_prompt_selection(f, prompt, sel)
-    }
-
-    /// Formats a multi select prompt.
-    #[inline]
-    fn format_multi_select_prompt(&self, f: &mut dyn fmt::Write, prompt: &str) -> fmt::Result {
-        self.format_prompt(f, prompt)
-    }
-
-    /// Formats a sort prompt.
-    #[inline]
-    fn format_sort_prompt(&self, f: &mut dyn fmt::Write, prompt: &str) -> fmt::Result {
-        self.format_prompt(f, prompt)
-    }
-
-    /// Formats a multi_select prompt after selection.
-    fn format_multi_select_prompt_selection(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        selections: &[&str],
-    ) -> fmt::Result {
-        write!(f, "{}: ", prompt)?;
-        for (idx, sel) in selections.iter().enumerate() {
-            write!(f, "{}{}", if idx == 0 { "" } else { ", " }, sel)?;
-        }
-        Ok(())
-    }
-
-    /// Formats a sort prompt after selection.
-    #[inline]
-    fn format_sort_prompt_selection(
-        &self,
-        f: &mut dyn fmt::Write,
-        prompt: &str,
-        selections: &[&str],
-    ) -> fmt::Result {
-        self.format_multi_select_prompt_selection(f, prompt, selections)
-    }
-
-    /// Formats a select prompt item.
-    fn format_select_prompt_item(
-        &self,
-        f: &mut dyn fmt::Write,
-        text: &str,
-        active: bool,
-    ) -> fmt::Result {
-        write!(f, "{} {}", if active { ">" } else { " " }, text)
-    }
-
-    /// Formats a multi select prompt item.
-    fn format_multi_select_prompt_item(
-        &self,
-        f: &mut dyn fmt::Write,
-        text: &str,
-        checked: bool,
-        active: bool,
-    ) -> fmt::Result {
-        write!(
-            f,
-            "{} {}",
-            match (checked, active) {
-                (true, true) => "> [x]",
-                (true, false) => "  [x]",
-                (false, true) => "> [ ]",
-                (false, false) => "  [ ]",
-            },
-            text
-        )
-    }
-
-    /// Formats a sort prompt item.
-    fn format_sort_prompt_item(
-        &self,
-        f: &mut dyn fmt::Write,
-        text: &str,
-        picked: bool,
-        active: bool,
-    ) -> fmt::Result {
-        write!(
-            f,
-            "{} {}",
-            match (picked, active) {
-                (true, true) => "> [x]",
-                (false, true) => "> [ ]",
-                (_, false) => "  [ ]",
-            },
-            text
-        )
-    }
-}
 
 /// A colorful theme
 pub struct ColorfulTheme {
@@ -356,8 +163,7 @@ impl dialoguer::theme::Theme for ColorfulTheme {
             &self.success_suffix,
             self.values_style.apply_to(match selection {
                 Some(true) => "yes",
-                Some(false) => "no",
-                None => "no",
+                Some(false) | None => "no",
             })
         )
     }
@@ -382,7 +188,7 @@ impl dialoguer::theme::Theme for ColorfulTheme {
             Some(default) => write!(
                 f,
                 "{} {} ",
-                self.hint_style.apply_to(&format!("({})", default)),
+                self.hint_style.apply_to(&format!("({default})")),
                 &self.prompt_suffix
             ),
             None => write!(f, "{} ", &self.prompt_suffix),
@@ -440,7 +246,7 @@ impl dialoguer::theme::Theme for ColorfulTheme {
 
         write!(f, "{} ", &self.success_suffix)?;
 
-        if selections.len() == 0 {
+        if selections.is_empty() {
             write!(f, "[]")?;
             return Ok(());
         }
@@ -464,15 +270,16 @@ impl dialoguer::theme::Theme for ColorfulTheme {
         text: &str,
         active: bool,
     ) -> fmt::Result {
-        let details = match active {
-            true => (
+        let details = if active {
+            (
                 &self.active_item_prefix,
                 self.active_item_style.apply_to(text),
-            ),
-            false => (
+            )
+        } else {
+            (
                 &self.inactive_item_prefix,
                 self.inactive_item_style.apply_to(text),
-            ),
+            )
         };
 
         write!(f, "{} {}", details.0, details.1)
