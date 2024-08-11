@@ -20,9 +20,9 @@ use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Select};
 use git_related::{
-    add_with_exclude, commit, find_project_root, get_branches_list, get_current_commit_nb,
-    process_deteted_files, process_git_status, process_gitignore_file, push, read_git_status,
-    stash_and_maybe_pop, switch_branch,
+    add_with_exclude, commit, find_project_root, get_branches_list, get_current_branch,
+    get_current_commit_nb, process_deteted_files, process_git_status, process_gitignore_file, push,
+    read_git_status, stash_and_maybe_pop, switch_branch,
 };
 use utils::check_for_file_in_folder;
 
@@ -30,6 +30,7 @@ use utils::check_for_file_in_folder;
 const GITIGNORE_FILE_PATH: &str = ".gitignore";
 const COMMIT_MESSAGE_FILE: &str = "commit_message.md";
 const COMMITIGNORE_FILE_PATH: &str = ".commitignore";
+const COMMIT_TYPES: [&str; 4] = ["chore", "feat", "fix", "test"];
 
 // Args commands
 
@@ -115,8 +116,9 @@ enum Commands {
 ///
 /// ## Arguments
 /// * `path` - `&Path` - The source folder
+/// * `commit_types` - `&str` - The commit types
 /// * `verbose` - `bool` - Verbose the operation
-fn prepare_commit_msg(path: &Path, verbose: bool) {
+fn prepare_commit_msg(path: &Path, commit_type: &str, verbose: bool) {
     // Get the location of the file passed by 'path'
     // ex: path = /home/user/project/src/main.rs
     // get the location of the file: /home/user/project/src/
@@ -147,8 +149,12 @@ fn prepare_commit_msg(path: &Path, verbose: bool) {
         .unwrap();
 
     let commit_number: u16 = get_current_commit_nb() + 1;
+    let branch_name: String = get_current_branch();
 
-    if let Err(e) = writeln!(commit_file, "[{commit_number}]\n\n") {
+    if let Err(e) = writeln!(
+        commit_file,
+        "[{commit_number}] ({commit_type}/{branch_name})\n\n"
+    ) {
         eprintln!("Couldn't write to file: {e}");
     }
 
@@ -347,7 +353,13 @@ fn main() {
         Commands::Generate => {
             create_needed_files(verbose);
 
-            prepare_commit_msg(commit_message_file_path, verbose);
+            let commit_type = COMMIT_TYPES[Select::with_theme(&my_theme::ColorfulTheme::default())
+                .default(0)
+                .items(&COMMIT_TYPES)
+                .interact()
+                .unwrap()];
+
+            prepare_commit_msg(commit_message_file_path, commit_type, verbose);
         }
 
         Commands::Push { args } => {

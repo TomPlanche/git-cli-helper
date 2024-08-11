@@ -411,7 +411,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 52)
+        assert_eq!(get_current_commit_nb(), 55)
     }
 
     #[test]
@@ -470,7 +470,7 @@ mod tests {
     fn test_add_with_exclude() {
         let exclude: Vec<String> = vec!["README.md".to_string(), "src/git_related.rs".to_string()];
 
-        assert_eq!(add_with_exclude(&exclude, true).unwrap(), true);
+        assert_eq!(add_with_exclude(&exclude, true), true);
     }
 
     #[test]
@@ -486,7 +486,7 @@ mod tests {
     fn test_get_branches_list() {
         let branches = get_branches_list();
 
-        assert_eq!(branches.len() == 2, true);
-        assert_eq!(branches[0] == "aled", true)
+        assert_eq!(branches.len() == 1, true);
+        assert_eq!(branches[0] == "master", true)
     }
 }
