@@ -20,9 +20,9 @@ use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Select};
 use git_related::{
-    add_with_exclude, commit, find_project_root, get_branches_list, get_current_branch,
-    get_current_commit_nb, process_deteted_files, process_git_status, process_gitignore_file, push,
-    read_git_status, stash_and_maybe_pop, switch_branch,
+    add_with_exclude, commit, find_project_root, format_branch_name, get_branches_list,
+    get_current_branch, get_current_commit_nb, process_deteted_files, process_git_status,
+    process_gitignore_file, push, read_git_status, stash_and_maybe_pop, switch_branch,
 };
 use utils::check_for_file_in_folder;
 
@@ -149,7 +149,7 @@ fn prepare_commit_msg(path: &Path, commit_type: &str, verbose: bool) {
         .unwrap();
 
     let commit_number: u16 = get_current_commit_nb() + 1;
-    let branch_name: String = get_current_branch();
+    let branch_name: &str = &format_branch_name(&COMMIT_TYPES, &get_current_branch());
 
     if let Err(e) = writeln!(
         commit_file,
@@ -188,11 +188,6 @@ fn prepare_commit_msg(path: &Path, commit_type: &str, verbose: bool) {
                 if check_for_file_in_folder(Path::new(&file), Path::new(&item)) {
                     need_to_skip = true;
                 }
-            }
-
-            if need_to_skip {
-                // Skip the current file so the file is not added to the commit message
-                continue;
             }
 
             if need_to_skip {

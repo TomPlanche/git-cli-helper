@@ -157,7 +157,39 @@ pub fn switch_branch(branch: String) {
 }
 
 /// GETTERS  ==============================================================================  GETTERS
+/// # format_branch_name
+/// Formats the branch name.
+/// If the branch name contains a `COMMIT_TYPES` it will be removed.
 ///
+/// ## Arguments
+/// * `commit_types` - `&[&str; 4]` - The commit types
+/// * `branch` - `String` - The branch name
+///
+/// ## Example
+/// ```rust
+/// let branch = "feat/branch-name";
+/// let commit_types = ["feat", "fix", "chore", "docs"];
+///
+/// let formatted_branch = format_branch_name(&commit_types, branch);
+///
+/// assert_eq!(formatted_branch, "branch-name");
+/// ```
+///
+/// ## Returns
+/// * `String` - The formatted branch name
+pub fn format_branch_name(commit_types: &[&str; 4], branch: &String) -> String {
+    let mut formatted_branch = branch.clone();
+
+    for commit_type in commit_types {
+        if formatted_branch.contains(commit_type) {
+            // Remove the `/commit_type` from the branch name
+            formatted_branch = formatted_branch.replace(&format!("{}/", commit_type), "");
+        }
+    }
+
+    formatted_branch
+}
+
 /// # `get_current_branch`
 /// Returns the current git branch.
 ///
@@ -364,6 +396,7 @@ pub fn read_git_status() -> String {
 // Other functions ===============================================================  Other functions
 /// # `find_project_root`
 /// Finds the project root.
+/// May break if the projet contains submodules.
 ///
 /// ## Arguments
 /// * `caller_path` - The path to the caller.
@@ -400,9 +433,28 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        add_with_exclude, get_branches_list, get_current_branch, get_current_commit_nb,
-        process_deteted_files, process_git_status, process_gitignore_file,
+        add_with_exclude, format_branch_name, get_branches_list, get_current_branch,
+        get_current_commit_nb, process_deteted_files, process_git_status, process_gitignore_file,
     };
+
+    #[test]
+    fn test_format_branch_name() {
+        const COMMIT_TYPES: [&str; 4] = ["chore", "feat", "fix", "test"];
+
+        let branches: [String; 4] = [
+            "chore/branch_name".to_string(),
+            "feat/branch_name".to_string(),
+            "fix/branch_name".to_string(),
+            "test/branch_name".to_string(),
+        ];
+
+        for branch in branches.iter() {
+            assert_eq!(
+                format_branch_name(&COMMIT_TYPES, branch),
+                "branch_name".to_string()
+            );
+        }
+    }
 
     #[test]
     fn test_get_current_branch() {
@@ -411,7 +463,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 55)
+        assert_eq!(get_current_commit_nb(), 56)
     }
 
     #[test]
