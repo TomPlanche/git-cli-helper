@@ -13,14 +13,14 @@ mod git_related;
 #[path = "my_theme.rs"]
 mod my_theme;
 
-use std::io::prelude::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::{fs::File, io::prelude::Write};
 
 use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Select};
 use git_related::{
-    add_with_exclude, commit, find_project_root, format_branch_name, get_branches_list,
+    add_with_exclude, commit, find_git_project_root, format_branch_name, get_branches_list,
     get_current_branch, get_current_commit_nb, process_deteted_files, process_git_status,
     process_gitignore_file, push, read_git_status, stash_and_maybe_pop, switch_branch,
 };
@@ -153,7 +153,7 @@ fn prepare_commit_msg(path: &Path, commit_type: &str, verbose: bool) {
 
     if let Err(e) = writeln!(
         commit_file,
-        "[{commit_number}] ({commit_type}/{branch_name})\n\n"
+        "[{commit_number}] ({commit_type} on {branch_name})\n\n"
     ) {
         eprintln!("Couldn't write to file: {e}");
     }
@@ -222,58 +222,61 @@ fn prepare_commit_msg(path: &Path, commit_type: &str, verbose: bool) {
     }
 }
 
-///
 /// # `create_needed_files`
-/// Creates the needed files.
+/// Creates the needed files in the specified project root.
 ///
 /// ## Arguments
+/// * `path` - `PathBuf` - The path to the project root
 /// * `verbose` - `bool` - Verbose the operation
-fn create_needed_files(verbose: bool) {
+fn create_needed_files(path: PathBuf, verbose: bool) {
     if verbose {
-        println!("Creating the needed files...");
+        println!("Creating the needed files in {:?}...", path);
     }
 
+    let commit_message_path = path.join(COMMIT_MESSAGE_FILE);
+    let commitignore_path = path.join(COMMITIGNORE_FILE_PATH);
+
     // Check if the COMMIT_MESSAGE_FILE exists
-    if Path::new(COMMIT_MESSAGE_FILE).exists() {
+    if commit_message_path.exists() {
         if verbose {
-            // Print a message
             println!(
                 "\t`{}` {} ✅ ",
-                COMMIT_MESSAGE_FILE,
+                commit_message_path.display(),
                 Green.bold().paint("already exists")
             );
         }
     } else {
         // Create the file
-        std::fs::File::create(COMMIT_MESSAGE_FILE).expect("Something went wrong creating the file");
+        File::create(&commit_message_path)
+            .expect("Something went wrong creating the commit message file");
 
         if verbose {
             println!(
                 "\t`{}` {} ✅ ",
-                COMMIT_MESSAGE_FILE,
+                commit_message_path.display(),
                 Green.bold().paint("created")
             );
         }
     }
 
     // Same for the commitignore file
-    if Path::new(COMMITIGNORE_FILE_PATH).exists() {
+    if commitignore_path.exists() {
         if verbose {
             println!(
                 "\t`{}` {} ✅ ",
-                COMMITIGNORE_FILE_PATH,
+                commitignore_path.display(),
                 Green.bold().paint("already exists")
             );
         }
     } else {
         // Create the file
-        std::fs::File::create(COMMITIGNORE_FILE_PATH)
-            .expect("Something went wrong creating the file");
+        File::create(&commitignore_path)
+            .expect("Something went wrong creating the commitignore file");
 
         if verbose {
             println!(
                 "\t`{}` {} ✅ ",
-                COMMITIGNORE_FILE_PATH,
+                commitignore_path.display(),
                 Green.bold().paint("created")
             );
         }
@@ -301,7 +304,7 @@ fn main() {
     // Folder caller - the folder from which the program was called
     let caller = std::env::current_dir().unwrap();
 
-    let project_root = find_project_root(&caller);
+    let project_root = find_git_project_root(&caller).unwrap();
 
     let commit_message_file_path_str =
         format!("{}/{}", project_root.display(), COMMIT_MESSAGE_FILE);
@@ -346,7 +349,7 @@ fn main() {
         }
 
         Commands::Generate => {
-            create_needed_files(verbose);
+            create_needed_files(project_root, verbose);
 
             let commit_type = COMMIT_TYPES[Select::with_theme(&my_theme::ColorfulTheme::default())
                 .default(0)

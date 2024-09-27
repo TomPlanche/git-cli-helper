@@ -5,6 +5,7 @@
 use crate::utils::read_file;
 
 use ansi_term::Colour::{Green, Red};
+use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -396,35 +397,34 @@ pub fn read_git_status() -> String {
 // Other functions ===============================================================  Other functions
 /// # `find_project_root`
 /// Finds the project root.
-/// May break if the projet contains submodules.
+/// May break if the project contains submodules.
 ///
 /// ## Arguments
 /// * `caller_path` - The path to the caller.
 ///
 /// ## Returns
-/// * `PathBuf` - The path to the project root.
-pub fn find_project_root(caller_path: &Path) -> PathBuf {
+/// * `Result<PathBuf, Error>` - The path to the project root, or an error if not found.
+pub fn find_git_project_root(caller_path: &Path) -> Result<PathBuf, Error> {
     // Get the path to the caller
     let mut path = caller_path.to_path_buf();
 
     // While the path is not the root
-    while path.parent().is_some() {
+    while let Some(parent) = path.parent() {
         // If the path contains the .git folder
         if path.join(".git").exists() {
             // Return the path
-            return path;
-        }
-
-        // Exit the loop if the path is the root
-        if path.parent().is_none() {
-            break;
+            return Ok(path);
         }
 
         // Go up one level
-        path = path.parent().unwrap().to_path_buf();
+        path = parent.to_path_buf();
     }
 
-    path
+    // If we've reached the root '/' without finding a .git folder
+    Err(Error::new(
+        ErrorKind::NotFound,
+        "Git project root not found",
+    ))
 }
 
 // Tests ==================================================================================== Tests
@@ -433,8 +433,9 @@ mod tests {
     use std::path::Path;
 
     use super::{
-        add_with_exclude, format_branch_name, get_branches_list, get_current_branch,
-        get_current_commit_nb, process_deteted_files, process_git_status, process_gitignore_file,
+        add_with_exclude, find_git_project_root, format_branch_name, get_branches_list,
+        get_current_branch, get_current_commit_nb, process_deteted_files, process_git_status,
+        process_gitignore_file,
     };
 
     #[test]
@@ -463,7 +464,7 @@ mod tests {
 
     #[test]
     fn test_get_current_commit_nb() {
-        assert_eq!(get_current_commit_nb(), 56)
+        assert_eq!(get_current_commit_nb(), 57)
     }
 
     #[test]
@@ -540,5 +541,14 @@ mod tests {
 
         assert_eq!(branches.len() == 1, true);
         assert_eq!(branches[0] == "master", true)
+    }
+
+    #[test]
+    fn test_find_git_project_root() {
+        let path = Path::new(".");
+
+        let project_root = find_git_project_root(path);
+
+        assert_eq!(project_root.is_ok(), true);
     }
 }
