@@ -7,7 +7,7 @@ I was first tired to manually make proper commit messages so I made this Rust sc
 When I added files to git, I use to manually make a description of what I’ve done for each file. To make it readable I am using this structure
 
 ```
-[commit_nb] TL;DR Brief description
+[commit_nb] (<type> on <branch>) TL;DR Brief description
 
 - added_file_1
 
@@ -18,6 +18,12 @@ When I added files to git, I use to manually make a description of what I’ve d
 	blablou
 
 ```
+
+Where type can be:
+- feat
+- fix
+- test
+- chore
 
 (The new line after the file name is important for the markdown to work)
 
