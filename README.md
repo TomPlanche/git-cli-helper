@@ -1,184 +1,109 @@
-# Git Commands With Rust.
+# 🦀 Git Commit Assistant
 
-## Description
+A powerful Rust-based CLI tool that streamlines your Git workflow by automating commit message generation and branch management.
 
-I was first tired to manually make proper commit messages so I made this Rust script to learn the basics of Rust **_AND_** solve my problem.
+## ✨ Features
 
-When I added files to git, I use to manually make a description of what I’ve done for each file. To make it readable I am using this structure
+- 📝 **Automated Commit Message Generation** - Creates structured commit messages with file-by-file descriptions
+- 🌳 **Smart Branch Management** - Easy branch switching with stash handling
+- 🎯 **Selective File Inclusion** - Support for `.commitignore` to exclude specific files from commit messages
+- 🚀 **Git Operations** - Simplified commit and push operations
+- 🎨 **Interactive UI** - Beautiful terminal interface with colored prompts
 
-```
-[commit_nb] (<type> on <branch>) TL;DR Brief description
+## 🚀 Quick Start
 
-- added_file_1
+### Installation
 
-	blabla
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/git-commit-rust.git
+   cd git-commit-rust
+   ```
 
-- added_file_2
+2. Build the project:
+   ```bash
+   cargo build --release
+   ```
 
-	blablou
+3. Add to your PATH or create an alias:
+   ```bash
+   # In your shell config file (.bashrc, .zshrc, config.fish, etc.)
+   alias gcommit="/path/to/git-commit-rust/target/release/git_commit_with_rust"
+   ```
 
-```
+## 💡 Usage
 
-Where type can be:
-- feat
-- fix
-- test
-- chore
-
-(The new line after the file name is important for the markdown to work)
-
-I also wanted to make my life easier with switching branches and stashing changes.
-
-So I made this program in order to generate this file for me from the `git status –-porcelain` output.
-
-### Problems
-
-If I’ve added a file that is not needed in the commit file, I have to remove it every time.
-So I've made the implementation of '.commitignore' file that works **_EXACTLY_** as a '.gitignore' file.
-
-## Usage
+### Generate Commit Message
 
 ```bash
-> rust_binary_name <COMMAND> [OPTIONS] [ARGS]
+gcommit -g
+```
+This will:
+- Create a `commit_message.md` file
+- Scan for modified/added files
+- Generate a structured template
+- Open the file in your editor
+
+### Commit Changes
+
+```bash
+gcommit -c          # Commit only
+gcommit -cp         # Commit and push
+gcommit -cpa --set-upstream origin main  # Commit and push with args
 ```
 
-## Commands
+### Branch Management
 
-### `-g` or `--generate`
-
-This command will generate the commit report file from the `git status --porcelain` output, without the files in the `.commitignore` file.
-
-### `-c` or `--commit`
-
-This command will commit the changes with the commit message in the commit file.
-Can be combined with the [push](#-p-or---push) command.
-
-### `-p` or `--push`
-
-This command will push the changes to the remote repository.
-We can also add arguments behind the command to push the changes with specific arguments.
-
-### `-s` or `--switch`
-
-This command will ask you to select a branch to switch to.
-It has its own options:
-
-- `-s` or `--stash`
-  This option will stash the changes before switching to the branch.
-
-- `-a` or `--apply_stash`
-  This option will apply the stash after switching to the branch.
-
-#### Generate the commit file
-
-Let's say you have added 3 files to git.
-
-```
-> git status
-M src/main.rs
-M src/commit.rs
-M src/utils.rs
+```bash
+gcommit -s          # Switch branches
+gcommit -s --stash  # Stash changes before switching
+gcommit -s --apply-stash  # Apply stash after switching
 ```
 
-You can generate the commit file with the command
+## 📋 Commit Message Structure
 
-```
-> rust_binary_name -g # or --generate
-```
+```markdown
+[commit_nb] (<type> on <branch>) TL;DR Brief description
 
-This will generate this file
+- `file1.rs`:
 
-```
-[commit_nb]
+    Description of changes in file1
 
-- src/main.rs
+- `file2.rs`:
 
-
-
-- src/commit.rs
-
-
-
-- src/utils.rs
-
-
+    Description of changes in file2
 ```
 
-(The spaces are important for the markdown to work)
+Where `type` can be:
+- `feat`: New features
+- `fix`: Bug fixes
+- `test`: Test-related changes
+- `chore`: Maintenance tasks
 
-#### Commit the changes with the commit file message
+## 🎯 .commitignore
 
-```
-[28] TL;DR Brief description
+Similar to `.gitignore`, you can create a `.commitignore` file to exclude files from appearing in the commit message template:
 
-- src/main.rs
+```plaintext
+# Exclude documentation
+*.md
+docs/
 
-  blabla
-
-- src/commit.rs
-
-  blablou
-
-
-```
-
-(Once again, the spaces are important for the markdown to work)
-
-You can commit the changes with the following commands:
-
-- Simple commit
-
-  ```
-  > rust_binary_name -c # or --commit
-  ```
-
-  This will commit the changes with the commit message in the commit file.
-
-- Commit and push
-
-  ```
-  > rust_binary_name -cp
-  ```
-
-  This will commit the changes with the commit message in the commit file and push the changes to the remote repository.
-
-- Commit and push with a push arguments
-
-  ```
-  > rust_binary_name -cpa --set-upstream origin main
-  ```
-
-  This will commit the changes with the commit message from the file, push the changes with the given arguments for push.
-
-#### Added all files with exceptions
-
-You can add all files to the commit with specific exceptions with the following command:
-
-```
-> rust_binary_name -ae ./README.md ./src/main.rs
+# Exclude specific folders
+target/
+tests/
 ```
 
-## `.commitignore` file.
+## 🛠️ Commands
 
-This files works exactly as the `.gitignore` file.
-If you want to ignore a file from the commit file, just add it to the `.commitignore` file. Works for directories too :)
+| Command | Description |
+|---------|-------------|
+| `-g, --generate` | Generate commit message template |
+| `-c, --commit` | Commit changes using template |
+| `-p, --push` | Push changes to remote |
+| `-s, --switch` | Interactive branch switching |
+| `-a, --add-exclude` | Add files with exclusions |
 
-## Installation
+## 📄 License
 
-To install this program, follow these steps:
-
-- Clone the repository
-- Go to the repository folder
-- Run the following command
-  ```
-  > cargo build --release
-  ```
-- Alias the binary to a command of your choice in your shell config file
-  - For example, in my `.config/fish/config.fish` file I have this line
-    ```
-    alias commit="my_path_to_my_repo/target/release/git_commit_with_rust"
-    ```
-  - You can also add the binary to your path
-    ```
-    > export PATH=$PATH:~/Documents/Programming/Rust/git_commit_with_rust/target/release
-    ```
+This project is licensed under the MIT License - see the LICENSE file for details.
