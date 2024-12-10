@@ -178,8 +178,8 @@ pub fn switch_branch(branch: String) {
 ///
 /// ## Returns
 /// * `String` - The formatted branch name
-pub fn format_branch_name(commit_types: &[&str; 4], branch: &String) -> String {
-    let mut formatted_branch = branch.clone();
+pub fn format_branch_name(commit_types: &[&str; 4], branch: &str) -> String {
+    let mut formatted_branch = branch.to_owned();
 
     for commit_type in commit_types {
         if formatted_branch.contains(commit_type) {

@@ -358,6 +358,12 @@ fn main() {
                 .unwrap()];
 
             prepare_commit_msg(commit_message_file_path, commit_type, verbose);
+
+            // Open the file in Zed.
+            let _ = std::process::Command::new("zed")
+                .arg(commit_message_file_path)
+                .spawn()
+                .expect("Error opening the file in Zed");
         }
 
         Commands::Push { args } => {
@@ -384,7 +390,7 @@ fn main() {
                 .unwrap()];
 
             if Confirm::with_theme(&my_theme::ColorfulTheme::default())
-                .with_prompt(&format!("Switch to branch: {chosen_branch} ?"))
+                .with_prompt(format!("Switch to branch: {chosen_branch} ?"))
                 .default(true)
                 .interact()
                 .unwrap()
