@@ -106,6 +106,10 @@ enum Commands {
         #[arg(short, long)]
         apply_stash: bool,
     },
+
+    /// List files from git status (for shell completion)
+    #[command(short_flag = 'l')]
+    ListStatus,
 }
 // Function(s) =========================================================================== Functions
 ///
@@ -402,6 +406,14 @@ fn main() {
                 }
             } else {
                 println!("Bye !");
+            }
+        }
+
+        Commands::ListStatus => {
+            let files = git_related::get_status_files();
+            // Print each file on a new line for fish shell completion
+            for file in files {
+                println!("{}", file);
             }
         }
     }

@@ -38,9 +38,8 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> bool {
 
         if Path::new(&file).exists() {
             let _ = Command::new("git")
-                .arg("rm")
-                .arg("-r")
-                .arg("--cached")
+                .arg("restore")
+                .arg("--staged")
                 .arg(file)
                 .output()
                 .expect("failed to execute process");
@@ -425,6 +424,56 @@ pub fn find_git_project_root(caller_path: &Path) -> Result<PathBuf, Error> {
         ErrorKind::NotFound,
         "Git project root not found",
     ))
+}
+
+/// # `get_status_files`
+/// Returns a list of all files that appear in git status
+/// (modified, untracked, staged - but not deleted)
+/// 
+/// ## Returns
+/// * `Vec<String>` - List of files from git status
+pub fn get_status_files() -> Vec<String> {
+    let status = read_git_status();
+    
+    // Regex to match any file in git status except deleted files
+    // Matches patterns like:
+    // MM file.txt
+    // M  file.txt
+    //  M file.txt
+    // ?? file.txt
+    // But not:
+    //  D file.txt
+    // AD file.txt
+    let regex_rule = regex::Regex::new(r"^[MARCU? ][MARCU? ]\s(.*)$").unwrap();
+    
+    // Use a HashSet to avoid duplicates
+    use std::collections::HashSet;
+    let files: HashSet<String> = status
+        .lines()
+        .filter_map(|line| {
+            // Skip if it's a deleted file
+            if line.contains(" D") || line.contains("D ") {
+                return None;
+            }
+            
+            if regex_rule.is_match(line) {
+                Some(
+                    regex_rule
+                        .captures(line)
+                        .unwrap()
+                        .get(1)
+                        .unwrap()
+                        .as_str()
+                        .to_string(),
+                )
+            } else {
+                None
+            }
+        })
+        .collect();
+    
+    // Convert HashSet back to Vec
+    files.into_iter().collect()
 }
 
 // Tests ==================================================================================== Tests
