@@ -20,9 +20,10 @@ use ansi_term::Colour::{Green, Red};
 use clap::{Parser, Subcommand};
 use dialoguer::{Confirm, Select};
 use git_related::{
-    add_with_exclude, commit, find_git_project_root, format_branch_name, get_branches_list,
-    get_current_branch, get_current_commit_nb, process_deteted_files, process_git_status,
-    process_gitignore_file, push, read_git_status, stash_and_maybe_pop, switch_branch,
+    add_to_git_exclude, add_with_exclude, commit, find_git_project_root, format_branch_name,
+    get_branches_list, get_current_branch, get_current_commit_nb, process_deteted_files,
+    process_git_status, process_gitignore_file, push, read_git_status, stash_and_maybe_pop,
+    switch_branch,
 };
 use utils::check_for_file_in_folder;
 
@@ -285,6 +286,11 @@ fn create_needed_files(path: PathBuf, verbose: bool) {
             );
         }
     }
+
+    // Add files to git exclude
+    if let Err(e) = add_to_git_exclude(&path, &[COMMIT_MESSAGE_FILE, COMMITIGNORE_FILE_PATH]) {
+        eprintln!("Warning: Failed to add files to git exclude: {}", e);
+    }
 }
 
 ///
@@ -367,7 +373,8 @@ fn main() {
             let _ = std::process::Command::new("zed")
                 .arg(commit_message_file_path)
                 .spawn()
-                .expect("Error opening the file in Zed");
+                .expect("Error opening the file in Zed")
+                .wait();
         }
 
         Commands::Push { args } => {

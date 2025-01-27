@@ -5,7 +5,7 @@
 use crate::utils::read_file;
 
 use ansi_term::Colour::{Green, Red};
-use std::io::{Error, ErrorKind};
+use std::io::{Error, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -429,12 +429,12 @@ pub fn find_git_project_root(caller_path: &Path) -> Result<PathBuf, Error> {
 /// # `get_status_files`
 /// Returns a list of all files that appear in git status
 /// (modified, untracked, staged - but not deleted)
-/// 
+///
 /// ## Returns
 /// * `Vec<String>` - List of files from git status
 pub fn get_status_files() -> Vec<String> {
     let status = read_git_status();
-    
+
     // Regex to match any file in git status except deleted files
     // Matches patterns like:
     // MM file.txt
@@ -445,7 +445,7 @@ pub fn get_status_files() -> Vec<String> {
     //  D file.txt
     // AD file.txt
     let regex_rule = regex::Regex::new(r"^[MARCU? ][MARCU? ]\s(.*)$").unwrap();
-    
+
     // Use a HashSet to avoid duplicates
     use std::collections::HashSet;
     let files: HashSet<String> = status
@@ -455,7 +455,7 @@ pub fn get_status_files() -> Vec<String> {
             if line.contains(" D") || line.contains("D ") {
                 return None;
             }
-            
+
             if regex_rule.is_match(line) {
                 Some(
                     regex_rule
@@ -467,15 +467,52 @@ pub fn get_status_files() -> Vec<String> {
                         .to_string(),
                 )
             } else {
+                println!("Error: unexpected line in git status: {}", line);
                 None
             }
         })
         .collect();
-    
+
     // Convert HashSet back to Vec
     files.into_iter().collect()
 }
 
+/// # `add_to_git_exclude`
+/// Add paths to the `.git/info/exclude` file.
+///
+/// ## Arguments
+/// * `project_root` - The path to the project root.
+/// * `paths` - List of paths to add to the exclude file.
+///
+/// ## Returns * `Result<(), std::io::Error>` - Result of the operation.
+pub fn add_to_git_exclude(project_root: &Path, paths: &[&str]) -> std::io::Result<()> {
+    let exclude_file = project_root.join(".git").join("info").join("exclude");
+    // Create parent directories if they don't exist
+    if let Some(parent) = exclude_file.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
+    // Read existing content to avoid duplicates
+    let mut content = String::new();
+    if exclude_file.exists() {
+        content = std::fs::read_to_string(&exclude_file)?;
+    }
+
+    // Open file in append mode
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(exclude_file)?;
+
+    // Add each path if it's not already there
+    for path in paths {
+        if !content.contains(path) {
+            writeln!(file, "{}", path)?;
+        }
+    }
+
+    Ok(())
+}
 // Tests ==================================================================================== Tests
 #[cfg(test)]
 mod tests {
