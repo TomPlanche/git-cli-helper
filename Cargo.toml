@@ -4,7 +4,6 @@ description = "A simple CLI tool to help you with your git commands."
 documentation = "https://github.com/TomPlanche/git-cli-helper?tab=readme-ov-file#git-commands-with-rust"
 edition = "2021"
 keywords = ["cli", "git", "helper", "commands"]
-license = "MIT"
 license-file = "LICENSE"
 name = "git-commands"
 readme = "README.md"

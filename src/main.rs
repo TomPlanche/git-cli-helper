@@ -233,9 +233,9 @@ fn prepare_commit_msg(path: &Path, commit_type: &str, verbose: bool) {
 /// ## Arguments
 /// * `path` - `PathBuf` - The path to the project root
 /// * `verbose` - `bool` - Verbose the operation
-fn create_needed_files(path: PathBuf, verbose: bool) {
+fn create_needed_files(path: &PathBuf, verbose: bool) {
     if verbose {
-        println!("Creating the needed files in {:?}...", path);
+        println!("Creating the needed files in {path:?}...");
     }
 
     let commit_message_path = path.join(COMMIT_MESSAGE_FILE);
@@ -288,8 +288,8 @@ fn create_needed_files(path: PathBuf, verbose: bool) {
     }
 
     // Add files to git exclude
-    if let Err(e) = add_to_git_exclude(&path, &[COMMIT_MESSAGE_FILE, COMMITIGNORE_FILE_PATH]) {
-        eprintln!("Warning: Failed to add files to git exclude: {}", e);
+    if let Err(e) = add_to_git_exclude(path, &[COMMIT_MESSAGE_FILE, COMMITIGNORE_FILE_PATH]) {
+        eprintln!("Warning: Failed to add files to git exclude: {e}");
     }
 }
 
@@ -324,13 +324,9 @@ fn main() {
 
     match &cli.command {
         Commands::AddAndExclude { exclude } => {
-            let successful_add = add_with_exclude(exclude, verbose);
+            let (successful_add, successfully_exclude) = add_with_exclude(exclude, verbose);
 
-            if successful_add {
-                println!("{} ✅ ", Green.bold().paint("Added the files"));
-            } else {
-                println!("{} ❌ ", Red.bold().paint("Error adding the files"));
-            }
+            println!("Added {successful_add} files to the commit and excluded {successfully_exclude} files.");
         }
         Commands::Commit { push, args } => {
             if commit_message_file_path.exists() {
@@ -359,7 +355,7 @@ fn main() {
         }
 
         Commands::Generate => {
-            create_needed_files(project_root, verbose);
+            create_needed_files(&project_root, verbose);
 
             let commit_type = COMMIT_TYPES[Select::with_theme(&my_theme::ColorfulTheme::default())
                 .default(0)
@@ -420,7 +416,7 @@ fn main() {
             let files = git_related::get_status_files();
             // Print each file on a new line for fish shell completion
             for file in files {
-                println!("{}", file);
+                println!("{file}");
             }
         }
     }

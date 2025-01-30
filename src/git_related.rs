@@ -5,6 +5,7 @@
 use crate::utils::read_file;
 
 use ansi_term::Colour::{Green, Red};
+use std::collections::HashSet;
 use std::io::{Error, ErrorKind, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -20,20 +21,31 @@ use std::process::Command;
 /// ## Arguments
 /// * `files_to_exclude` - `&Vec<String>` - the 'paths' of the file to exclude.
 /// * `verbose` - `bool` - Should be verbose or not
-pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> bool {
+pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> (u32, u32) {
     if verbose {
         println!("Adding files...");
     }
 
+    // Get number of staged files after add
     let _ = Command::new("git")
         .arg("add")
         .arg("--all")
         .output()
         .expect("failed to execute process");
 
+    // Count staged files using git diff --cached --numstat
+    let staged = Command::new("git")
+        .args(["diff", "--cached", "--numstat"])
+        .output()
+        .expect("failed to execute process");
+
+    let staged_count = String::from_utf8_lossy(&staged.stdout).lines().count();
+
+    // Exclude files
+    let excluded_count = u32::try_from(files_to_exclude.len()).unwrap();
     for file in files_to_exclude {
         if verbose {
-            println!("  excuding {file}");
+            println!("  excluding {file}");
         }
 
         if Path::new(&file).exists() {
@@ -46,7 +58,11 @@ pub fn add_with_exclude(files_to_exclude: &Vec<String>, verbose: bool) -> bool {
         }
     }
 
-    true
+    if verbose {
+        println!("Added {staged_count} files and excluded {excluded_count} files for commit.",);
+    }
+
+    (u32::try_from(staged_count).unwrap(), excluded_count)
 }
 
 ///
@@ -157,7 +173,7 @@ pub fn switch_branch(branch: String) {
 }
 
 /// GETTERS  ==============================================================================  GETTERS
-/// # format_branch_name
+/// # `format_branch_name`
 /// Formats the branch name.
 /// If the branch name contains a `COMMIT_TYPES` it will be removed.
 ///
@@ -183,7 +199,7 @@ pub fn format_branch_name(commit_types: &[&str; 4], branch: &str) -> String {
     for commit_type in commit_types {
         if formatted_branch.contains(commit_type) {
             // Remove the `/commit_type` from the branch name
-            formatted_branch = formatted_branch.replace(&format!("{}/", commit_type), "");
+            formatted_branch = formatted_branch.replace(&format!("{commit_type}/"), "");
         }
     }
 
@@ -447,7 +463,6 @@ pub fn get_status_files() -> Vec<String> {
     let regex_rule = regex::Regex::new(r"^[MARCU? ][MARCU? ]\s(.*)$").unwrap();
 
     // Use a HashSet to avoid duplicates
-    use std::collections::HashSet;
     let files: HashSet<String> = status
         .lines()
         .filter_map(|line| {
@@ -467,7 +482,7 @@ pub fn get_status_files() -> Vec<String> {
                         .to_string(),
                 )
             } else {
-                println!("Error: unexpected line in git status: {}", line);
+                println!("Error: unexpected line in git status: {line}");
                 None
             }
         })
@@ -505,9 +520,14 @@ pub fn add_to_git_exclude(project_root: &Path, paths: &[&str]) -> std::io::Resul
         .open(exclude_file)?;
 
     // Add each path if it's not already there
+    if !content.is_empty() {
+        writeln!(file)?;
+        writeln!(file, "# Added by git-commit-rust")?;
+    }
+
     for path in paths {
         if !content.contains(path) {
-            writeln!(file, "{}", path)?;
+            writeln!(file, "{path}")?;
         }
     }
 
@@ -609,7 +629,7 @@ mod tests {
     fn test_add_with_exclude() {
         let exclude: Vec<String> = vec!["README.md".to_string(), "src/git_related.rs".to_string()];
 
-        assert_eq!(add_with_exclude(&exclude, true), true);
+        assert_eq!(add_with_exclude(&exclude, true), (0, 2));
     }
 
     #[test]
