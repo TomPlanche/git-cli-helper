@@ -513,6 +513,18 @@ pub fn add_to_git_exclude(project_root: &Path, paths: &[&str]) -> std::io::Resul
         content = std::fs::read_to_string(&exclude_file)?;
     }
 
+    // Check if any of the paths are already excluded
+    let mut paths_to_add = Vec::new();
+    for path in paths {
+        if !content.contains(path) {
+            paths_to_add.push(path);
+        }
+    }
+
+    if paths_to_add.is_empty() {
+        return Ok(());
+    }
+
     // Open file in append mode
     let mut file = std::fs::OpenOptions::new()
         .create(true)
@@ -520,7 +532,7 @@ pub fn add_to_git_exclude(project_root: &Path, paths: &[&str]) -> std::io::Resul
         .open(exclude_file)?;
 
     // Add each path if it's not already there
-    if !content.is_empty() {
+    if !content.is_empty() && !content.contains("# Added by git-commit-rust") {
         writeln!(file)?;
         writeln!(file, "# Added by git-commit-rust")?;
     }
