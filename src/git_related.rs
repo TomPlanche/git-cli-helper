@@ -94,6 +94,8 @@ pub fn commit(message: &str, verbose: bool) -> Result<bool, String> {
     } else {
         println!("{}", Red.bold().paint("Commit failed."));
 
+        eprintln!("Error: {}", String::from_utf8_lossy(&command.stderr));
+
         Err("Commit failed.".to_string())
     }
 }
@@ -129,6 +131,8 @@ pub fn push(args: Option<Vec<String>>, verbose: bool) -> Result<(), String> {
         Ok(())
     } else {
         println!("{}", Red.bold().paint("Push failed."));
+
+        eprintln!("Error: {}", String::from_utf8_lossy(&command.stderr));
 
         Err("Push failed.".to_string())
     }
